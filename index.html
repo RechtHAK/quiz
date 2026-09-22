@@ -17,9 +17,18 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
+/* Feines Linienmuster wie auf Wertpapier — gibt der Fläche Textur,
+   ohne dass Text schlechter lesbar wird. */
 body{margin:0;background:var(--stone);color:var(--ink);
+  background-image:
+    repeating-linear-gradient(135deg, rgba(18,22,24,.022) 0 1px, transparent 1px 7px),
+    radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,.7) 0%, rgba(255,255,255,0) 55%);
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
+/* Rot-weiß-rotes Band am oberen Rand */
+body::before{content:"";position:fixed;left:0;right:0;top:0;height:4px;z-index:100;
+  background:linear-gradient(90deg,var(--red) 0 33.3%,#fff 33.3% 66.6%,var(--red) 66.6% 100%);
+  pointer-events:none}
 h1,h2,h3{margin:0;text-wrap:balance}
 button{font-family:inherit;cursor:pointer;color:inherit;border:0;background:none;font-size:inherit}
 input{font-family:inherit}
@@ -142,7 +151,15 @@ input{font-family:inherit}
 .field{width:100%;font-size:21px;padding:15px 16px;border:2px solid var(--line);border-radius:8px;
   background:var(--paper);color:var(--ink)}
 .field:focus{border-color:var(--ink);outline:none}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+  box-shadow:0 3px 12px rgba(18,22,24,.07)}
+.opt{box-shadow:0 1px 3px rgba(18,22,24,.06)}
+.emo,.sh{box-shadow:0 2px 6px rgba(18,22,24,.07)}
+.dc{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(0,0,0,.12));
+  box-shadow:0 3px 0 rgba(0,0,0,.22), 0 6px 14px rgba(18,22,24,.18)}
+.srow{box-shadow:0 2px 8px rgba(18,22,24,.06)}
+.qtile{background-image:linear-gradient(160deg,rgba(255,255,255,.18),rgba(0,0,0,.12));
+  text-shadow:0 2px 4px rgba(0,0,0,.22)}
 .card.brass{border:0;border-left:4px solid var(--brass);border-radius:0 10px 10px 0}
 .p{font-size:16.5px;color:var(--ink-2);margin:0;line-height:1.45}
 
@@ -155,13 +172,21 @@ input{font-family:inherit}
 
 /* ---- Figurenwahl ---- */
 .archs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.arch{border-radius:9px;background:var(--paper);border:2px solid var(--line);padding:6px 3px 5px;
-  display:flex;flex-direction:column;align-items:center;gap:2px;transition:border-color .12s,transform .08s}
-.arch .af{width:100%;aspect-ratio:120/200;pointer-events:none}
-.arch span{font-size:8.6px;font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
-  text-transform:uppercase;line-height:1.1;text-align:center}
-.arch.on{border-color:var(--red);background:#fdf6f7;transform:scale(1.03)}
-.arch.on span{color:var(--red)}
+.arch{border-radius:10px;background:var(--paper);border:1px solid var(--line);
+  border-top:4px solid var(--rc,var(--line));padding:6px 3px 5px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  box-shadow:0 2px 6px rgba(18,22,24,.07);transition:transform .1s,box-shadow .15s}
+.arch::before{content:"";position:absolute;inset:0;background:var(--rc);opacity:.05;pointer-events:none}
+.arch .af{width:100%;aspect-ratio:120/200;pointer-events:none;position:relative;z-index:1}
+/* Die weiblichen Formen sind länger — die Beschriftung darf umbrechen */
+.arch span{font-size:8px;font-family:"IBM Plex Mono",monospace;color:var(--ink-2);
+  text-transform:uppercase;line-height:1.12;text-align:center;position:relative;z-index:1;
+  font-weight:600;overflow-wrap:anywhere;hyphens:auto;padding:0 2px}
+.arch.on{transform:translateY(-3px) scale(1.04);box-shadow:0 8px 18px rgba(18,22,24,.18);
+  border-color:var(--rc)}
+.arch.on::before{opacity:.14}
+.arch.on::after{content:"";position:absolute;right:5px;top:6px;width:9px;height:9px;
+  border-radius:50%;background:var(--rc);box-shadow:0 0 0 2px #fff;z-index:2}
 .orow{display:flex;flex-direction:column;gap:7px}
 .orow > b{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink-2)}
@@ -189,8 +214,11 @@ input{font-family:inherit}
 .pad.golden{padding:8px;border-radius:14px;background:linear-gradient(135deg,#F6E7BE,#E3C786);
   box-shadow:0 0 0 3px var(--brass)}
 .ans{position:relative;display:flex;align-items:center;justify-content:center;
-  aspect-ratio:1/1;border-radius:10px;background:var(--ac);color:#fff;font-weight:800;
-  box-shadow:0 5px 0 rgba(0,0,0,.2);transition:transform .08s,opacity .3s}
+  aspect-ratio:1/1;border-radius:12px;background:var(--ac);color:#fff;font-weight:800;
+  background-image:linear-gradient(160deg,rgba(255,255,255,.22),rgba(0,0,0,.14));
+  box-shadow:0 6px 0 rgba(0,0,0,.24), 0 10px 22px rgba(18,22,24,.22),
+    inset 0 1px 0 rgba(255,255,255,.35);
+  text-shadow:0 2px 4px rgba(0,0,0,.28);transition:transform .08s,opacity .3s}
 .ans:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
 .ans .big{font-size:clamp(46px,16vw,76px);line-height:1;letter-spacing:-.02em}
 .ans::after{content:"";position:absolute;inset:6px;border-radius:6px;
@@ -319,8 +347,12 @@ input{font-family:inherit}
 .ltop{display:flex;align-items:center;gap:clamp(18px,2.4vw,42px);flex-wrap:wrap}
 .joinaddr{font-family:"IBM Plex Mono",monospace;font-weight:600;
   font-size:clamp(20px,2.2vw,36px);line-height:1.05;color:var(--red);word-break:break-all}
-.roomcode{font-family:"IBM Plex Mono",monospace;font-weight:600;letter-spacing:.22em;
-  font-size:clamp(34px,4.4vw,76px);line-height:1;color:var(--ink)}
+/* Der Raumcode wie ein Schild am Rednerpult */
+.roomcode{font-family:"IBM Plex Mono",monospace;font-weight:600;letter-spacing:.2em;
+  font-size:clamp(30px,4vw,68px);line-height:1;color:#2E2A21;display:inline-block;
+  background:linear-gradient(180deg,#FBF8EF,#EDE6D3);border:1px solid #C9BD9A;
+  border-bottom-width:3px;border-radius:7px;padding:clamp(4px,.5vw,10px) clamp(12px,1.4vw,26px);
+  box-shadow:0 4px 14px rgba(18,22,24,.14), inset 0 1px 0 #fff}
 .qrbox{background:#fff;padding:clamp(8px,.8vw,13px);border-radius:10px;border:1px solid var(--line);
   box-shadow:0 6px 24px rgba(18,22,24,.08);flex:none}
 .qrbox canvas{display:block;width:clamp(96px,10vw,165px);height:auto;image-rendering:pixelated}
@@ -537,23 +569,49 @@ var LETTERS=["A","B","C","D"];
 var COLORS=["var(--a)","var(--b)","var(--c)","var(--d)"];
 var HEX=["#B82740","#1C67A8","#BE8118","#487F36"];
 
-/* Rolle · Kurzzeile · Mantelfarbe · dunklere Farbe */
+/* Jede Rolle in drei Formen: neutral, weiblich, männlich.
+   Stellt jemand auf "Weiblich", heißen alle Rollen entsprechend. */
 var ARCH=[
- ["Der Kanzler","Regiert, bis das Misstrauen kommt.","#1C3A63","#142B4A"],
- ["Die Oppositionsführerin","Hat zu allem eine Anfrage.","#7E1B2C","#5E1220"],
- ["Die Klubobfrau","Sagt, wie der Klub stimmt.","#5B2E6E","#431F52"],
- ["Der Hinterbänkler","Sitzt hinten, hört alles.","#4A5560","#353E47"],
- ["Die Aktivistin","War schon vor der Debatte da.","#2C7A4D","#1F5A38"],
- ["Der Ministerialrat","Kennt jeden Paragrafen.","#6B6357","#4F493F"],
- ["Die Ministerin","Muss jede Anfrage beantworten.","#A3162B","#7C0F20"],
- ["Der Bürgermeister","Kennt alle beim Vornamen.","#8E7030","#6B5322"],
- ["Die Journalistin","Schreibt mit. Immer.","#276C7C","#1B4F5B"],
- ["Der Schulsprecher","Erste Rede mit 16.","#C4622D","#9A4B1F"],
- ["Die Landwirtin","Steht um fünf auf.","#6E7B2E","#535D20"],
- ["Der Gewerkschafter","Verhandelt bis Mitternacht.","#B23A1E","#8A2B14"]
+ {n:"Kanzler:in",          w:"Die Kanzlerin",            m:"Der Kanzler",
+  k:"Kanzler:in",  kw:"Kanzlerin",  km:"Kanzler",
+  b:"Regiert, bis das Misstrauen kommt.", c:"#1C3A63", d:"#142B4A"},
+ {n:"Oppositionsführung",  w:"Die Oppositionsführerin",  m:"Der Oppositionsführer",
+  k:"Opposition",  kw:"Oppositionsführerin", km:"Oppositionsführer",
+  b:"Hat zu allem eine Anfrage.", c:"#7E1B2C", d:"#5E1220"},
+ {n:"Klubvorsitz",         w:"Die Klubobfrau",           m:"Der Klubobmann",
+  k:"Klubvorsitz", kw:"Klubobfrau", km:"Klubobmann",
+  b:"Sagt, wie der Klub stimmt.", c:"#5B2E6E", d:"#431F52"},
+ {n:"Hinterbank",          w:"Die Hinterbänklerin",      m:"Der Hinterbänkler",
+  k:"Hinterbank",  kw:"Hinterbänklerin", km:"Hinterbänkler",
+  b:"Sitzt hinten, hört alles.", c:"#4A5560", d:"#353E47"},
+ {n:"Aktivismus",          w:"Die Aktivistin",           m:"Der Aktivist",
+  k:"Aktivismus",  kw:"Aktivistin", km:"Aktivist",
+  b:"War schon vor der Debatte da.", c:"#2C7A4D", d:"#1F5A38"},
+ {n:"Ministerialrat:in",   w:"Die Ministerialrätin",     m:"Der Ministerialrat",
+  k:"Beamtung",    kw:"Ministerialrätin", km:"Ministerialrat",
+  b:"Kennt jeden Paragrafen.", c:"#6B6357", d:"#4F493F"},
+ {n:"Ministerium",         w:"Die Ministerin",           m:"Der Minister",
+  k:"Ministerium", kw:"Ministerin", km:"Minister",
+  b:"Muss jede Anfrage beantworten.", c:"#A3162B", d:"#7C0F20"},
+ {n:"Bürgermeisteramt",    w:"Die Bürgermeisterin",      m:"Der Bürgermeister",
+  k:"Rathaus",     kw:"Bürgermeisterin", km:"Bürgermeister",
+  b:"Kennt alle beim Vornamen.", c:"#8E7030", d:"#6B5322"},
+ {n:"Presse",              w:"Die Journalistin",         m:"Der Journalist",
+  k:"Presse",      kw:"Journalistin", km:"Journalist",
+  b:"Schreibt mit. Immer.", c:"#276C7C", d:"#1B4F5B"},
+ {n:"Schulsprache",        w:"Die Schulsprecherin",      m:"Der Schulsprecher",
+  k:"Schule",      kw:"Schulsprecherin", km:"Schulsprecher",
+  b:"Erste Rede mit 16.", c:"#C4622D", d:"#9A4B1F"},
+ {n:"Landwirtschaft",      w:"Die Landwirtin",           m:"Der Landwirt",
+  k:"Landwirtschaft", kw:"Landwirtin", km:"Landwirt",
+  b:"Steht um fünf auf.", c:"#6E7B2E", d:"#535D20"},
+ {n:"Gewerkschaft",        w:"Die Gewerkschafterin",     m:"Der Gewerkschafter",
+  k:"Gewerkschaft", kw:"Gewerkschafterin", km:"Gewerkschafter",
+  b:"Verhandelt bis Mitternacht.", c:"#B23A1E", d:"#8A2B14"}
 ];
-var ARSHORT=["Kanzler","Opposition","Klubobfrau","Hinterbank","Aktivistin","Ministerialrat",
-             "Ministerin","Bürgermeister","Journalistin","Schulsprecher","Landwirtin","Gewerkschaft"];
+/* typ: 0 neutral, 1 weiblich, 2 männlich */
+function archName(i,typ){ var A=ARCH[i]||ARCH[0]; return typ===1?A.w:(typ===2?A.m:A.n); }
+function archShort(i,typ){ var A=ARCH[i]||ARCH[0]; return typ===1?A.kw:(typ===2?A.km:A.k); }
 
 /* Hauptmerkmale — bewusst wenige, dafuer deutlich */
 var TYP  = ["Neutral","Weiblich","Männlich"];
@@ -566,7 +624,7 @@ var DANCE = [["Normal","🧍"],["Wippen","🕺"],["Arme hoch","🙌"],["Twist","
 var EXTRA = ["Nichts","Brille","Sonnenbrille","Hut","Kappe","Krone"];
 
 var EMOJI=["👏","🔥","😮","😂","🤔","💯"];
-var SHOUTS=["Bravo!","Hört, hört!","Ordnungsruf!","Zur Geschäftsordnung!","Buh!"];
+var SHOUTS=["MEGA!","Bravo!","Hört, hört!","Ordnungsruf!","Zur Geschäftsordnung!","Buh!"];
 var OFFICES=[
  ["Bundespräsident:in","Staatsoberhaupt. Beurkundet jedes Gesetz und ernennt die Bundesregierung."],
  ["Bundeskanzler:in","Regierungschef:in. Leitet die Bundesregierung und den Ministerrat."],
@@ -648,7 +706,7 @@ function extraSVG(i){
    einen Rock statt Hose und Wimpern — damit es auch von weitem erkennbar ist. */
 var COATS=[
   {p:"M36 96 Q60 84 84 96 L88 156 Q60 164 32 156 Z", a1:25, a2:81},
-  {p:"M39 96 Q60 86 81 96 L84 124 Q60 131 36 124 L34 152 Q60 160 86 152 Z", a1:28, a2:78},
+  {p:"M39 96 Q60 86 81 96 L88 150 Q60 158 32 150 Z", a1:28, a2:78},
   {p:"M31 96 Q60 82 89 96 L90 155 Q60 162 30 155 Z", a1:22, a2:84}
 ];
 function legsSVG(t, skin, dk){
@@ -667,11 +725,11 @@ function legsSVG(t, skin, dk){
          '<ellipse cx="'+(x2+w/2)+'" cy="209" rx="10" ry="4.5" fill="#15191B"/>';
 }
 function figSVG(ar, ac, cls){
-  var A = (ar===undefined||ar===null||ar<0) ? ["?","","#8C9397","#6D7478"]
+  var A = (ar===undefined||ar===null||ar<0) ? {c:"#8C9397", d:"#6D7478"}
         : (ARCH[clamp(ar|0,0,ARCH.length-1)]||ARCH[0]);
   var o = parseAc(ac);
   var C = COATS[o[0]] || COATS[0];
-  var coat=A[2], dk=A[3], skin=SKIN[o[2]]||SKIN[0];
+  var coat=A.c, dk=A.d, skin=SKIN[o[2]]||SKIN[0];
   var hc=(HAIR[o[1]]||HAIR[0])[1];
   var lash = (o[0]===1)
     ? '<path d="M45.5 48.6 L47.6 50.4 M50 47.6 L50 50 M54.5 48.6 L52.4 50.4" stroke="#1B2124" '+
@@ -854,18 +912,28 @@ var cli=null, bi=0, ROOM="", IS_HOST=false, onState=null, onMsg=null, connected=
 function tS(){ return "hhl/"+ROOM+"/s"; }
 function tM(){ return "hhl/"+ROOM+"/m"; }
 
+/* Handys trennen die Verbindung, sobald der Bildschirm aus geht.
+   Deshalb: sofort neu verbinden, sobald die Seite wieder sichtbar ist.
+   Der Spielstand liegt beim Vermittler als "retained message" —
+   nach dem Wiederverbinden ist man ohne Zutun wieder auf dem
+   aktuellen Stand, mit allen Punkten. */
+var wantConnect=false, reconnTimer=null;
 function netConnect(ready){
   if(typeof mqtt==="undefined"){ showBadge("Keine Internetverbindung"); return; }
-  var tried=0;
+  wantConnect=true;
+  var tried=0, first=true;
   function go(){
+    if(!wantConnect) return;
+    if(cli){ try{ cli.end(true); }catch(e){} cli=null; }
     var url=BROKERS[bi];
     var c=mqtt.connect(url,{clientId:"hhl"+Math.random().toString(16).slice(2,10),
-      clean:true, connectTimeout:7000, reconnectPeriod:0, keepalive:30});
+      clean:true, connectTimeout:6000, reconnectPeriod:0, keepalive:20});
     var settled=false;
     c.on("connect",function(){
-      settled=true; connected=true; cli=c; hideBadge();
+      settled=true; connected=true; cli=c; tried=0; hideBadge();
       c.subscribe([tS(), tM()], {qos:0});
-      if(ready) ready();
+      if(first){ first=false; if(ready) ready(); }
+      else if(IS_HOST && onReconnect) onReconnect();
     });
     c.on("message",function(topic,payload){
       var m=null; try{ m=JSON.parse(payload.toString()); }catch(e){ return; }
@@ -875,18 +943,30 @@ function netConnect(ready){
     });
     c.on("error",function(){ try{ c.end(true); }catch(e){} });
     c.on("close",function(){
+      connected=false;
       if(!settled){
         tried++; bi=(bi+1)%BROKERS.length;
-        if(tried<BROKERS.length*2){ setTimeout(go,600); }
-        else showBadge("Verbindung nicht möglich");
+        if(tried<BROKERS.length*3){ retry(700); }
+        else { showBadge("Keine Verbindung — Internet prüfen"); retry(4000); }
         return;
       }
-      connected=false; showBadge("Verbindung unterbrochen …");
-      setTimeout(go,1500);
+      showBadge("Verbindung kommt gleich zurück …");
+      retry(900);
     });
   }
+  function retry(ms){
+    if(reconnTimer) clearTimeout(reconnTimer);
+    reconnTimer=setTimeout(go, ms);
+  }
+  /* Bildschirm wieder an, WLAN wieder da: nicht warten, sofort probieren */
+  function kick(){ if(wantConnect && !connected){ if(reconnTimer) clearTimeout(reconnTimer); go(); } }
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) kick(); });
+  window.addEventListener("online", kick);
+  window.addEventListener("pageshow", kick);
+  window.addEventListener("focus", kick);
   go();
 }
+var onReconnect=null;
 function pub(topic,obj,retain){
   if(!cli||!connected) return;
   try{ cli.publish(topic, JSON.stringify(obj), {qos:0, retain:!!retain}); }catch(e){}
@@ -960,6 +1040,9 @@ function startHost(){
   var jQueue=[], jBusy=false, dirty=true, mgrOpen=false;
 
   onMsg=handle; onState=null;
+  /* Nach einem Verbindungsabriss den Spielstand sofort wieder hinterlegen,
+     damit Handys, die gerade aufwachen, ihn vorfinden. */
+  onReconnect=function(){ dirty=true; publish(); };
   showBadge("Verbinde …");
   netConnect(function(){ hideBadge(); dirty=true; publish(); draw(true); });
 
@@ -1352,7 +1435,7 @@ function startHost(){
           '<span class="t3b"><span class="t3r">'+(idx+1)+'</span></span></div>';
       }).join("")+'</div>'+
       '</div>'+railHTML()+nextBtn("Nächste Frage")+'</div>');
-    paintRail(); applyDance();
+    paintRail(); applyDance(); wireNext();
   }
   function final(){
     var rs=ranked(), top=rs.slice(0,4);
@@ -1421,10 +1504,15 @@ function startPlayer(){
     draw();
   };
   onMsg=null;
+  /* Wer noch keinen Namen hat, sieht sofort das Anmeldeformular —
+     auch wenn die Leitung den Raum noch gar nicht geöffnet hat. */
+  if(!me) join(); else waitScreen();
   showBadge("Verbinde …");
-  netConnect(function(){ hideBadge(); if(!S) waitScreen(); });
+  netConnect(function(){
+    hideBadge();
+    if(me && !S) waitScreen();
+  });
   setInterval(paintTimer,150);
-  if(!me) setTimeout(function(){ if(!S) join(); }, 400);
 
   function players(){ return arr(S&&S.ps); }
   function row(){ var ps=players(); for(var i=0;i<ps.length;i++) if(ps[i].id===MYID) return ps[i]; return null; }
@@ -1456,10 +1544,38 @@ function startPlayer(){
         return '<button class="dc" data-dn="'+(i+1)+'"><b>'+d[1]+'</b>'+esc(d[0])+'</button>'; }).join("")+'</div>'+
       '</div>';
   }
+  /* Man sieht seine eigene Reaktion sofort auf dem eigenen Handy —
+     nicht erst, wenn sie über den Vermittler zurückkommt. */
+  function myFig(){
+    var w=document.querySelector('[data-me] .fig');
+    if(w) return w;
+    return document.querySelector('.minihall [data-fig="'+MYID+'"] .fig');
+  }
+  var meDanceTimer=null;
+  function danceMe(d){
+    var f=myFig(); if(!f) return;
+    f.classList.remove("dn1","dn2","dn3","dn4");
+    if(d>0) f.classList.add("dn"+d);
+    if(meDanceTimer) clearTimeout(meDanceTimer);
+    meDanceTimer=setTimeout(function(){
+      var x=myFig(); if(x) x.classList.remove("dn1","dn2","dn3","dn4");
+    },4000);
+  }
+  function floatOwn(txt, pill){
+    var d=document.createElement("div");
+    d.className="fl"+(pill?" pill":"");
+    d.style.left=(18+Math.random()*58)+"vw";
+    d.innerHTML=esc(txt);
+    floatLayer.appendChild(d);
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },5200);
+  }
   function wireReact(){
-    each("[data-emo]",function(b){ b.onclick=function(){ send({t:"emo",e:EMOJI[+b.getAttribute("data-emo")]}); }; });
-    each("[data-sh]",function(b){ b.onclick=function(){ send({t:"shout",e:SHOUTS[+b.getAttribute("data-sh")]}); }; });
-    each("[data-dn]",function(b){ b.onclick=function(){ send({t:"dance",e:b.getAttribute("data-dn")}); }; });
+    each("[data-emo]",function(b){ b.onclick=function(){
+      var e=EMOJI[+b.getAttribute("data-emo")]; floatOwn(e,false); send({t:"emo",e:e}); }; });
+    each("[data-sh]",function(b){ b.onclick=function(){
+      var s=SHOUTS[+b.getAttribute("data-sh")]; floatOwn(s,true); send({t:"shout",e:s}); }; });
+    each("[data-dn]",function(b){ b.onclick=function(){
+      var d=+b.getAttribute("data-dn"); danceMe(d); send({t:"dance",e:d}); }; });
   }
 
   function outScreen(why){
@@ -1495,9 +1611,13 @@ function startPlayer(){
       return '<div><span class="eyebrow">Dein Name</span>'+
         '<input class="field" id="nm" placeholder="z. B. Mia" maxlength="16" autocomplete="off" '+
           'style="margin-top:7px" value="'+esc((me&&me.n)||"")+'"></div>'+
+        /* Die Vorschaufiguren zeigen sofort dein gewähltes Aussehen —
+           stellst du auf Weiblich, sind alle zwölf Rollen weiblich. */
         '<div><span class="eyebrow">Deine Rolle</span><div class="archs" style="margin-top:8px">'+
-          ARCH.map(function(A,i){ return '<button class="arch'+(ar===i?" on":"")+'" data-ar="'+i+'">'+
-            '<span class="af">'+figSVG(i,"0,0,0,0,0")+'</span><span>'+esc(ARSHORT[i])+'</span></button>';
+          ARCH.map(function(A,i){
+            return '<button class="arch'+(ar===i?" on":"")+'" data-ar="'+i+'" style="--rc:'+A.c+'">'+
+              '<span class="af">'+figSVG(i,acStr(ac))+'</span>'+
+              '<span>'+esc(archShort(i,ac[0]))+'</span></button>';
           }).join("")+'</div></div>'+
         rowOpts("Typ", TYP, 0, function(t){ return esc(t); })+
         rowOpts("Frisur", HAIR, 1, function(t){ return '<i style="background:'+t[1]+'"></i>'+esc(t[0]); })+
@@ -1507,7 +1627,7 @@ function startPlayer(){
     }
     function preview(){
       return '<span class="pv">'+figSVG(ar,acStr(ac),"dn"+ac[3])+'</span>'+
-        '<span class="pi"><b>'+esc(ARCH[ar][0])+'</b><i>'+esc(TYP[ac[0]])+' · '+
+        '<span class="pi"><b>'+esc(archName(ar,ac[0]))+'</b><i>'+esc(TYP[ac[0]])+' · '+
         esc(HAIR[ac[1]][0])+' · '+esc(DANCE[ac[3]][0])+'</i></span>'+
         '<button class="go" id="jo">Beitreten</button>';
     }
@@ -1542,7 +1662,7 @@ function startPlayer(){
   function waitJoin(){
     h('<div class="wrap">'+bar()+
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center">'+
-      '<span style="height:150px;aspect-ratio:120/220;display:block;margin:0 auto">'+
+      '<span style="height:150px;aspect-ratio:120/220;display:block;margin:0 auto" data-me="1">'+
         figSVG(me.ar,me.ac)+'</span>'+
       '<h1 class="serif" style="font-size:28px">Wird angemeldet …</h1>'+
       '<p class="p">Gleich siehst du dich vorne im Saal.</p></div></div>');
@@ -1574,7 +1694,7 @@ function startPlayer(){
     var r=row()||{ar:0,ac:""};
     h('<div class="wrap">'+bar()+
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center">'+
-      '<span style="height:165px;aspect-ratio:120/220;display:block">'+figSVG(r.ar,r.ac)+'</span>'+
+      '<span style="height:165px;aspect-ratio:120/220;display:block" data-me="1">'+figSVG(r.ar,r.ac)+'</span>'+
       '<h1 class="serif" style="font-size:29px">Du hast Platz genommen.</h1>'+
       '<p class="p">Du siehst dich vorne im Saal. Gleich geht es los.</p>'+
       '</div>'+reactBar()+'</div>');
@@ -1666,7 +1786,7 @@ function startPlayer(){
     var amt=(rk.r>=1&&rk.r<=4)?OFFICES[rk.r-1]:null;
     h('<div class="wrap">'+bar()+
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center">'+
-      '<span style="height:140px;aspect-ratio:120/220;display:block">'+figSVG(r.ar,r.ac,"cheer")+'</span>'+
+      '<span style="height:140px;aspect-ratio:120/220;display:block" data-me="1">'+figSVG(r.ar,r.ac,"cheer")+'</span>'+
       '<span class="eyebrow">Endstand · Platz '+rk.r+' von '+rk.of+'</span>'+
       (amt ? '<h1 class="serif" style="font-size:29px;line-height:1.04">Du bist '+esc(amt[0])+'.</h1>'+
              '<p class="p" style="font-size:15px">'+esc(amt[1])+'</p>'
