@@ -1,0 +1,1706 @@
+<title>Das Hohe Haus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<style>
+/* ============================================================
+   DAS HOHE HAUS — Präsentationsdeck
+   Auf den Folien stehen ausschliesslich Inhalte.
+   Alle Bedienhinweise liegen in den Regie-Notizen (Taste N)
+   und in der Hilfe (Taste ?) — beide sind standardmaessig aus.
+   ============================================================ */
+:root{
+  --stone:#F1F2EF; --stone-2:#E3E5E0; --paper:#FFFFFF;
+  --ink:#121618; --ink-2:#3A4144; --ink-3:#6A7174; --line:#D2D6D1;
+  --red:#A3162B; --red-soft:#F7E8EA; --brass:#8E7030;
+  --ok:#3B7537;
+  --fpo:#0056A2; --ovp:#2FA6B8; --spo:#CE000C; --neos:#E0357C; --gruene:#6E9B22;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--stone); color:var(--ink); overflow:hidden;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.015em}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+button{font-family:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+/* ---------------- Bühne ---------------- */
+#stage{position:fixed;inset:0;background:var(--stone);overflow:hidden}
+.slide{
+  position:absolute;inset:0;display:none;
+  padding:clamp(34px,5vw,80px);
+  padding-bottom:clamp(44px,5vh,64px);
+  background:var(--stone);
+}
+.slide.on{display:flex;flex-direction:column;animation:enter .42s cubic-bezier(.2,.7,.3,1)}
+@keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}}
+.slide.bleed{padding:0}
+#prog{position:fixed;left:0;bottom:0;height:3px;background:var(--red);z-index:51;transition:width .35s ease}
+
+/* ---------------- Typo-Bausteine ---------------- */
+/* Dunkler und groesser als vorher — aus der letzten Reihe war das kaum lesbar */
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(16px,1.35vw,25px);font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);display:block;
+}
+h1.display{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.02em;
+  font-size:clamp(46px,8.2vw,132px);line-height:.94;margin:0;text-wrap:balance}
+h2.big{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.015em;
+  font-size:clamp(34px,5.4vw,86px);line-height:1.02;margin:0;text-wrap:balance}
+h3.mid{font-size:clamp(24px,3vw,48px);font-weight:600;line-height:1.12;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p.lead{font-size:clamp(20px,1.85vw,31px);line-height:1.4;color:var(--ink-2);margin:0;max-width:30ch}
+.num{font-family:"Instrument Serif",Georgia,serif;font-variant-numeric:tabular-nums;line-height:.82}
+.fill{flex:1;min-height:0;display:flex}
+
+/* ---------------- Elemente ---------------- */
+.tag{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--red);color:var(--red);
+  border-radius:99px;padding:7px 18px;font-family:"IBM Plex Mono",monospace;
+  font-size:clamp(14px,1.1vw,19px);letter-spacing:.11em;text-transform:uppercase;font-weight:500}
+.brassrule{height:2px;background:var(--brass);width:56px;border:0;margin:0}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,34px);width:100%}
+.panel{border-top:3px solid var(--ink);padding-top:clamp(12px,1.4vw,22px);display:flex;flex-direction:column;gap:9px}
+.panel .k{font-family:"IBM Plex Mono",monospace;font-size:clamp(14px,1.1vw,19px);letter-spacing:.13em;color:var(--ink-3);text-transform:uppercase}
+.panel .h{font-size:clamp(21px,2.1vw,35px);font-weight:600;line-height:1.14;letter-spacing:-.005em}
+.panel .b{font-size:clamp(17px,1.5vw,26px);color:var(--ink-2);line-height:1.4}
+.panel.accent{border-top-color:var(--red)}
+
+/* Hemicycle */
+.hemi{width:100%;height:100%;display:block}
+.hemi circle{transition:opacity .3s ease, fill .5s ease}
+
+/* Abstimmungs-Tafel */
+.tally{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,30px);width:100%}
+.tbox{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:clamp(16px,1.9vw,28px);
+  display:flex;flex-direction:column;gap:8px;border-top:5px solid var(--tc,var(--ink));
+  cursor:pointer;user-select:none;transition:border-color .15s, transform .08s}
+.tbox:hover{border-color:var(--tc,var(--ink))}
+.tbox:active{transform:translateY(2px)}
+.tbox .tl{font-family:"IBM Plex Mono",monospace;font-size:clamp(15px,1.2vw,20px);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-2)}
+.tbox .tv{font-family:"Instrument Serif",Georgia,serif;font-size:clamp(56px,8.5vw,124px);line-height:.82;font-variant-numeric:tabular-nums}
+.votebar{display:flex;height:clamp(26px,3vh,42px);border-radius:4px;overflow:hidden;background:var(--stone-2);width:100%}
+.votebar i{display:block;transition:width .4s cubic-bezier(.2,.7,.3,1)}
+
+/* Timer */
+.clockbig{font-family:"IBM Plex Mono",monospace;font-weight:600;font-variant-numeric:tabular-nums;
+  font-size:clamp(96px,20vw,300px);line-height:.86;letter-spacing:-.03em;color:var(--ink-3)}
+.clockbig.run{color:var(--red)}
+
+/* Ersatz-Quiz */
+.qhead{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.qhead .qclock{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-weight:600;
+  font-variant-numeric:tabular-nums;font-size:clamp(40px,6vw,96px);line-height:.9;color:var(--ink-3)}
+.qhead .qclock.run{color:var(--red)}
+.qbar{height:7px;background:var(--stone-2);border-radius:4px;overflow:hidden;width:100%}
+.qbar i{display:block;height:100%;width:100%;background:var(--red);transition:width .95s linear}
+.qtiles{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.6vw,24px);width:100%}
+.qtile{display:flex;align-items:center;gap:clamp(12px,1.5vw,22px);background:var(--qc);color:#fff;
+  border-radius:6px;padding:clamp(14px,1.8vw,28px) clamp(16px,2vw,30px);
+  box-shadow:0 4px 0 rgba(0,0,0,.18);transition:opacity .35s, transform .35s}
+.qtile svg{width:clamp(26px,3vw,46px);height:clamp(26px,3vw,46px);flex:none}
+.qtile .ql{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:clamp(18px,1.7vw,29px);flex:none;opacity:.88}
+.qtile .qt{font-size:clamp(18px,1.9vw,32px);font-weight:600;line-height:1.16}
+.qtiles.revealed .qtile{opacity:.3}
+.qtiles.revealed .qtile.right{opacity:1;transform:scale(1.03);
+  box-shadow:0 0 0 5px var(--ink), 0 4px 0 rgba(0,0,0,.18)}
+.qexpl{background:var(--paper);border-left:5px solid var(--brass);border-radius:0 6px 6px 0;
+  padding:clamp(14px,1.6vw,24px) clamp(18px,1.9vw,28px);
+  font-size:clamp(18px,1.55vw,28px);line-height:1.38;color:var(--ink-2)}
+
+/* Ersatz-Podium */
+.podwrap{display:flex;align-items:stretch;justify-content:center;gap:clamp(10px,1.6vw,26px);
+  width:100%;flex:1;min-height:0}
+.pod{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;flex:1;max-width:220px}
+.pod .pname{font-weight:700;font-size:clamp(17px,1.7vw,28px);text-align:center;line-height:1.15;
+  margin-bottom:5px;overflow-wrap:anywhere}
+.pod .pscore{font-family:"IBM Plex Mono",monospace;font-weight:600;font-variant-numeric:tabular-nums;
+  font-size:clamp(16px,1.45vw,24px);color:var(--ink-2);margin-bottom:10px}
+.pod .pblock{width:100%;border-radius:6px 6px 0 0;display:flex;align-items:flex-start;
+  justify-content:center;padding-top:12px;transition:height .6s cubic-bezier(.2,.8,.3,1)}
+.pod .prank{font-family:"Instrument Serif",Georgia,serif;font-size:clamp(30px,4vw,64px);
+  line-height:1;color:#fff;opacity:.94}
+.pod.p1 .pblock{background:var(--brass)}
+.pod.p2 .pblock{background:#8E969A}
+.pod.p3 .pblock{background:#9D6A42}
+.ranklist{display:flex;flex-direction:column;gap:6px;width:100%;overflow:auto;flex:1;min-height:0}
+.ranklist .rr{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:baseline;
+  padding:8px 10px;border-bottom:1px solid var(--line);font-size:clamp(16px,1.45vw,24px)}
+.ranklist .rr .rn{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);font-size:.85em}
+.ranklist .rr .rs{font-family:"IBM Plex Mono",monospace;font-weight:600;font-variant-numeric:tabular-nums}
+.ranklist .rr button{border:0;background:none;color:var(--ink-3);font-size:.8em;padding:0 0 0 10px}
+.rankform{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.rankform input{font-family:"Public Sans",sans-serif;font-size:clamp(17px,1.45vw,23px);
+  padding:12px 15px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink)}
+.rankform input#rkName{flex:2 1 160px}
+.rankform input#rkPts{flex:1 1 90px;font-family:"IBM Plex Mono",monospace;text-align:center}
+.rankform button{flex:0 0 auto;border:1px solid var(--ink);background:var(--ink);color:var(--stone);
+  border-radius:4px;padding:12px 24px;font-weight:600;font-size:clamp(16px,1.35vw,21px)}
+
+/* Gesetzesweg */
+.pipe{display:flex;flex-direction:column;gap:0;width:100%}
+.pstep{display:grid;grid-template-columns:clamp(44px,5vw,78px) 1fr;gap:clamp(14px,2vw,30px);
+  align-items:start;padding:clamp(9px,1.25vh,18px) 0;border-bottom:1px solid var(--line);
+  opacity:.22;transition:opacity .35s ease}
+.pstep.lit{opacity:1}
+.pstep .pn{font-family:"IBM Plex Mono",monospace;font-size:clamp(15px,1.2vw,21px);color:var(--red);font-weight:600;padding-top:.3em}
+/* Titel und Erklaerung sind Spans — ohne display:block stehen sie nebeneinander */
+.pstep .pt{display:block;font-size:clamp(20px,2vw,34px);font-weight:600;line-height:1.14;letter-spacing:-.005em}
+.pstep .pd{display:block;font-size:clamp(16px,1.35vw,24px);color:var(--ink-2);line-height:1.36;margin-top:5px}
+
+/* Klub-Tafel */
+.klubs{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.4vw,22px);width:100%}
+.klub{border:1px solid var(--line);background:var(--paper);border-radius:6px;overflow:hidden;
+  display:flex;flex-direction:column}
+.klub .kh{padding:clamp(10px,1.2vw,17px);border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:8px}
+.klub .kn{font-weight:700;font-size:clamp(18px,1.6vw,28px)}
+.klub .ks{font-family:"IBM Plex Mono",monospace;font-size:clamp(14px,1.15vw,19px);color:var(--ink-2);margin-left:auto;font-variant-numeric:tabular-nums}
+.klub .kb{display:flex;flex-direction:column;gap:6px;padding:clamp(9px,1.1vw,14px)}
+.klub .kb button{border:1px solid var(--line);background:var(--stone);border-radius:4px;padding:11px 0;
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(14px,1.15vw,18px);letter-spacing:.07em;font-weight:600;text-transform:uppercase}
+.klub .kb button.on[data-k="ja"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.klub .kb button.on[data-k="nein"]{background:var(--red);border-color:var(--red);color:#fff}
+.klub .kb button.on[data-k="enth"]{background:var(--ink-3);border-color:var(--ink-3);color:#fff}
+.verdict{display:flex;align-items:baseline;gap:clamp(12px,2vw,28px);width:100%;flex-wrap:wrap}
+.verdict .vn{font-family:"Instrument Serif",Georgia,serif;font-size:clamp(46px,7vw,106px);line-height:.85;font-variant-numeric:tabular-nums}
+.verdict .vt{font-size:clamp(19px,2.2vw,36px);font-weight:600;letter-spacing:-.01em}
+
+/* Bildfolien */
+.imgslide{position:absolute;inset:0;overflow:hidden;background:var(--stone)}
+.imgslide .art{position:absolute;inset:0;width:100%;height:100%}
+.imgslide img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.imgcap{position:absolute;left:clamp(28px,4vw,68px);bottom:clamp(52px,7vh,96px);
+  max-width:min(48ch,64%);z-index:3;
+  background:rgba(252,252,250,.95);border-left:5px solid var(--red);border-radius:0 6px 6px 0;
+  padding:clamp(18px,2vw,32px) clamp(22px,2.3vw,38px);
+  box-shadow:0 10px 40px rgba(18,22,24,.14)}
+.imgcap h2{font-family:"Instrument Serif",Georgia,serif;font-weight:400;color:var(--ink);
+  font-size:clamp(30px,4.8vw,74px);line-height:1;margin:0 0 10px;text-wrap:balance}
+.imgcap p{margin:0;color:var(--ink-2);font-size:clamp(18px,1.6vw,27px);line-height:1.36;max-width:40ch}
+.imgscrim{position:absolute;inset:0;z-index:2;
+  background:linear-gradient(to top,rgba(248,249,246,.5) 0%,rgba(248,249,246,.12) 42%,rgba(248,249,246,0) 70%)}
+
+/* Regie-Overlays — standardmässig unsichtbar */
+#notes{
+  position:fixed;right:0;top:0;bottom:0;width:min(440px,42vw);z-index:60;
+  background:#0E1113;color:#D3D8DA;padding:26px 26px 80px;overflow:auto;
+  border-left:1px solid #2A2F32;transform:translateX(100%);transition:transform .28s ease;
+}
+#notes.on{transform:none}
+#notes h4{margin:0 0 6px;font-size:16px;color:#fff;font-weight:600}
+#notes .nk{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7F878A;margin-bottom:14px;display:flex}
+#notes .nk b{margin-left:auto;color:#E2A0AC;font-variant-numeric:tabular-nums}
+#notes p{font-size:14.5px;line-height:1.55;margin:0 0 11px;color:#B9C0C3}
+#notes .say{border-left:2px solid var(--brass);padding-left:13px;color:#E8EBEC;font-size:15px;line-height:1.6}
+#notes .act{color:#E2A0AC;font-size:13.5px;line-height:1.5;margin:0 0 6px}
+#help{
+  position:fixed;inset:0;z-index:70;background:rgba(14,17,19,.95);color:#D3D8DA;
+  display:none;align-items:center;justify-content:center;padding:40px;
+}
+#help.on{display:flex}
+#help .hc{max-width:680px;width:100%}
+#help h3{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:38px;color:#fff;margin:0 0 20px}
+#help dl{display:grid;grid-template-columns:auto 1fr;gap:10px 22px;margin:0;font-size:15px}
+#help dt{font-family:"IBM Plex Mono",monospace;color:#fff;font-size:13px;white-space:nowrap}
+#help dd{margin:0;color:#B9C0C3}
+
+/* ---------- Beitrittsfolie zum Live-Quiz ---------- */
+.qrbox{background:#fff;padding:clamp(10px,1.1vw,18px);border-radius:14px;border:1px solid var(--line);
+  box-shadow:0 12px 40px rgba(18,22,24,.12);flex:none}
+.qrbox canvas{display:block;width:clamp(150px,20vw,320px);height:auto;image-rendering:pixelated}
+.qraddr{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--red);
+  font-size:clamp(26px,3.6vw,64px);line-height:1.02;word-break:break-all;letter-spacing:-.01em;
+  cursor:pointer}
+.qstat{display:inline-flex;align-items:center;gap:12px;background:var(--paper);
+  border:1px solid var(--line);border-radius:99px;padding:clamp(8px,.9vw,14px) clamp(16px,1.7vw,26px);
+  font-size:clamp(16px,1.5vw,27px);font-weight:600;color:var(--ink-2)}
+.qstat i{width:clamp(10px,.9vw,15px);height:clamp(10px,.9vw,15px);border-radius:50%;
+  background:var(--ink-3);flex:none;font-style:normal}
+.qstat.live i{background:var(--ok);animation:pulse 1.6s ease-in-out infinite}
+.qstat.live{color:var(--ink)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.jokrow{display:flex;gap:clamp(10px,1.2vw,20px);flex-wrap:wrap}
+.jok{display:flex;align-items:center;gap:9px;border:2px solid var(--line);border-radius:10px;
+  padding:clamp(8px,.9vw,14px) clamp(13px,1.4vw,22px);font-weight:700;
+  font-size:clamp(15px,1.35vw,24px);background:var(--paper)}
+.jok.g{border-color:#C9A24A}
+.jok small{font-weight:500;color:var(--ink-3);font-size:.76em}
+
+/* ---------- Lösung des Kreuzworträtsels ---------- */
+.xw{display:grid;gap:2px}
+.xc{width:var(--cs);height:var(--cs);border-radius:2px}
+.xc.on{background:var(--paper);border:1px solid var(--line);position:relative;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);
+  font-size:calc(var(--cs) * .6)}
+.xc .xn{position:absolute;top:0;left:1px;font-size:calc(var(--cs) * .3);
+  color:var(--red);font-weight:600;line-height:1}
+.sol2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,34px)}
+.sol{list-style:none;margin:6px 0 0;padding:0}
+.sol li{display:grid;grid-template-columns:2.2em 1fr;gap:8px;align-items:baseline;
+  padding:clamp(3px,.5vh,7px) 0;border-bottom:1px solid var(--stone-2);
+  font-size:clamp(15px,1.5vw,27px);font-weight:600}
+.sol li b{font-family:"IBM Plex Mono",monospace;color:var(--red);font-weight:600;
+  font-size:.8em;text-align:right}
+
+/* ================================================================
+   OPTIK — Tiefe und Bewegung
+   Alles bleibt hell und ruhig. Die Folien sollen lebendig wirken,
+   ohne dass etwas vom Inhalt ablenkt.
+   ================================================================ */
+
+/* Weiche Aufhellung in der Mitte, sanfte Abdunklung zu den Raendern.
+   Gibt der Flaeche Tiefe, ohne dass Text dunkler wird. */
+/* Nur eine ganz leichte Abdunklung zu den Raendern. KEINE Aufhellung in der
+   Mitte — die hat den schwarzen Text oben ausgewaschen. */
+#stage::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:40;
+  background:radial-gradient(130% 100% at 50% 46%, rgba(18,22,24,0) 60%, rgba(18,22,24,.06) 100%);
+}
+#prog{height:4px;background:linear-gradient(90deg,var(--brass) 0%,var(--red) 70%);
+  box-shadow:0 0 14px rgba(163,22,43,.4)}
+
+/* Wer gerade spricht — klein rechts unten auf jeder Folie */
+.spk{
+  position:absolute;right:clamp(18px,2.4vw,44px);bottom:clamp(13px,1.7vh,24px);z-index:45;
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(12px,1.05vw,18px);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500;
+  pointer-events:none;text-shadow:0 1px 3px rgba(255,255,255,.85);
+  animation:rise .5s .35s both;
+}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+/* Ueberschriften werden von unten aufgedeckt statt nur eingeblendet */
+@keyframes reveal{
+  from{opacity:0;transform:translateY(26px);clip-path:inset(0 0 104% 0)}
+  to{opacity:1;transform:none;clip-path:inset(-20% -8% -20% -8%)}
+}
+.slide.on .eyebrow{animation:rise .5s .04s both}
+.slide.on h1.display,.slide.on h2.big{animation:reveal .72s .08s both}
+.slide.on h3.mid{animation:reveal .6s .12s both}
+.slide.on p.lead{animation:rise .55s .24s both}
+.slide.on .tag,.slide.on .brassrule{animation:rise .5s .18s both}
+/* Im Quiz wird der Kasten bei jeder Phase neu gebaut — dort nur ein kurzer Lift */
+#quizBox h2.big{animation:rise .38s both}
+
+/* Klubkarten und Antwortkacheln kommen nacheinander */
+.slide.on .klub{animation:rise .5s both}
+.slide.on .klub:nth-child(1){animation-delay:.14s}
+.slide.on .klub:nth-child(2){animation-delay:.20s}
+.slide.on .klub:nth-child(3){animation-delay:.26s}
+.slide.on .klub:nth-child(4){animation-delay:.32s}
+.slide.on .klub:nth-child(5){animation-delay:.38s}
+.slide.on .qtiles:not(.revealed) .qtile{animation:pop .46s both}
+.slide.on .qtiles:not(.revealed) .qtile:nth-child(1){animation-delay:.14s}
+.slide.on .qtiles:not(.revealed) .qtile:nth-child(2){animation-delay:.21s}
+.slide.on .qtiles:not(.revealed) .qtile:nth-child(3){animation-delay:.28s}
+.slide.on .qtiles:not(.revealed) .qtile:nth-child(4){animation-delay:.35s}
+.slide.on .tbox{animation:rise .5s both}
+.slide.on .tbox:nth-child(1){animation-delay:.16s}
+.slide.on .tbox:nth-child(2){animation-delay:.23s}
+.slide.on .tbox:nth-child(3){animation-delay:.30s}
+.slide.on .panel:not([data-step]){animation:rise .5s .2s both}
+
+/* Sitze setzen sich nacheinander — die Verzoegerung steht am Kreis selbst */
+.hemi circle{transform-box:fill-box;transform-origin:center}
+.slide.on #hemi2 circle,.slide.on #hemi3 circle{animation:seatIn .42s both}
+@keyframes seatIn{from{opacity:0;transform:scale(.25)}to{opacity:1;transform:none}}
+
+/* Bildfolien bekommen eine langsame Kamerafahrt */
+.slide.on.bleed .art,.slide.on.bleed img.photo{animation:ken 22s ease-out both}
+@keyframes ken{from{transform:scale(1.02)}to{transform:scale(1.10)}}
+.slide.on .imgcap{animation:rise .75s .3s both}
+
+/* Kreuzwortgitter fuellt sich diagonal */
+.slide.on .xc.on{animation:cellIn .4s both}
+@keyframes cellIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+.slide.on .sol li{animation:rise .42s both}
+.slide.on .sol li:nth-child(1){animation-delay:.22s}
+.slide.on .sol li:nth-child(2){animation-delay:.28s}
+.slide.on .sol li:nth-child(3){animation-delay:.34s}
+.slide.on .sol li:nth-child(4){animation-delay:.40s}
+.slide.on .sol li:nth-child(5){animation-delay:.46s}
+.slide.on .sol li:nth-child(6){animation-delay:.52s}
+.slide.on .sol li:nth-child(7){animation-delay:.58s}
+.slide.on .sol li:nth-child(8){animation-delay:.64s}
+
+/* Ergebnis als Stempel statt als blosser Text */
+.verdictbadge{display:inline-flex;align-items:center;gap:10px;
+  border:2px solid currentColor;border-radius:99px;
+  padding:clamp(5px,.55vw,10px) clamp(14px,1.5vw,26px);font-weight:700}
+.stamped{animation:stampIn .5s cubic-bezier(.2,.9,.3,1.5) both}
+@keyframes stampIn{
+  0%{opacity:0;transform:scale(1.7) rotate(-7deg)}
+  60%{opacity:1;transform:scale(.96) rotate(1deg)}
+  100%{opacity:1;transform:none}
+}
+
+/* Countdown wird zum Schluss dringlich */
+.clockbig{transition:color .3s}
+.clockbig.hot{color:var(--red);animation:beat .9s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+.clockbig.done{animation:flash .6s ease-out 2}
+@keyframes flash{0%{opacity:1}50%{opacity:.25}100%{opacity:1}}
+
+/* Konfetti auf dem Siegertreppchen */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:45;overflow:hidden}
+.conf{position:absolute;top:-6vh;width:11px;height:16px;border-radius:2px;opacity:0;
+  animation:fall linear forwards}
+@keyframes fall{
+  0%{opacity:0;transform:translateY(0) rotate(0deg)}
+  8%{opacity:1}
+  85%{opacity:1}
+  100%{opacity:0;transform:translateY(112vh) rotate(720deg)}
+}
+.pod .pblock{position:relative;overflow:hidden}
+.pod.first .pblock::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%);
+  animation:sheen 2.6s ease-in-out infinite}
+@keyframes sheen{0%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
+
+@media (prefers-reduced-motion:reduce){
+  .slide.on *,.conf,#stage::after{animation:none !important}
+}
+</style>
+
+<div id="stage"></div>
+<div id="prog"></div>
+<div id="fx"></div>
+
+<aside id="notes"><div class="nk"><span>Regie · N schliesst</span><b id="n-clock">0:00</b></div><div id="notes-body"></div></aside>
+
+<div id="help"><div class="hc">
+  <h3>Steuerung</h3>
+  <dl>
+    <dt>→ · Leertaste</dt><dd>Nächste Folie oder nächster Einblendeschritt</dd>
+    <dt>←</dt><dd>Zurück</dd>
+    <dt>N</dt><dd>Regie-Notizen mit dem Sprechtext — nur auf dem Laptop sichtbar</dd>
+    <dt>C</dt><dd>Vortragsuhr starten und stoppen (läuft in den Notizen mit)</dd>
+    <dt>T</dt><dd>Countdown auf einer Timer-Folie starten</dd>
+    <dt>F</dt><dd>Vollbild</dd>
+    <dt>B</dt><dd>Auf einer Bildfolie ein eigenes Foto einsetzen</dd>
+    <dt>?</dt><dd>Diese Hilfe</dd>
+  </dl>
+  <h3 style="font-size:26px;margin:30px 0 14px">Auf der Abstimmungsfolie</h3>
+  <dl>
+    <dt>J</dt><dd>Eine Ja-Stimme dazu</dd>
+    <dt>E</dt><dd>Eine Enthaltung dazu</dd>
+    <dt>X</dt><dd>Eine Nein-Stimme dazu</dd>
+    <dt>Klick</dt><dd>Auf einen der drei Kästen klicken zählt auch eine Stimme dazu</dd>
+    <dt>Rechtsklick</dt><dd>Auf einen Kasten: eine Stimme wieder wegnehmen</dd>
+    <dt>Shift + J/E/X</dt><dd>Dasselbe über die Tastatur</dd>
+    <dt>R</dt><dd>Zählung auf null zurücksetzen</dd>
+  </dl>
+  <h3 style="font-size:26px;margin:30px 0 14px">Quiz und Schluss</h3>
+  <dl>
+    <dt>Q</dt><dd><b>Umschalter.</b> Wechselt zwischen Quiz ohne Handys und Handy-Quiz mit QR-Code.
+      Die Wahl bleibt gespeichert, das Deck springt direkt zum Quiz</dd>
+    <dt>Quiz ohne Handys</dt><dd>Frage vorlesen, Leertaste startet den Countdown, bei 0 löst es auf.
+      Danach Auswertung: Namen und Punkte eintippen, die besten drei kommen aufs Podium</dd>
+    <dt>Esc</dt><dd>Gibt den Cursor aus dem Eingabefeld frei — danach blättert die Leertaste wieder</dd>
+    <dt>Handy-Quiz</dt><dd>QR-Code und Adresse stehen auf der Folie, die Zahl zählt live mit.
+      Braucht Laptop und Handys im selben Netz — im Schul-WLAN klappt das meist nicht</dd>
+    <dt>Kreuzworträtsel</dt><dd>T startet die eineinhalb Minuten, die Lösung kommt auf der Folie danach</dd>
+    <dt>Ende-Taste</dt><dd>Springt zur jeweils nicht genutzten Quiz-Variante hinter der Dankesfolie</dd>
+  </dl>
+</div></div>
+
+<input type="file" id="filepick" accept="image/*" style="display:none">
+
+<script>
+(function(){
+"use strict";
+
+/* ================================================================= Daten */
+var PARTIES = [
+  {k:"gruene", n:"Grüne", s:16, c:"#6E9B22"},
+  {k:"spo",    n:"SPÖ",   s:41, c:"#CE000C"},
+  {k:"neos",   n:"NEOS",  s:18, c:"#E0357C"},
+  {k:"ovp",    n:"ÖVP",   s:51, c:"#2FA6B8"},
+  {k:"fpo",    n:"FPÖ",   s:57, c:"#0056A2"}
+];
+
+function $(id){ return document.getElementById(id); }
+function el(tag, cls, html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+/* ============================================================
+   BEITRITT ZUM LIVE-QUIZ
+   Die Folie holt Adresse und Teilnehmerzahl direkt vom Quiz-Server,
+   der auf diesem Laptop laeuft. Dadurch muss zum Herzeigen des
+   QR-Codes kein zweites Fenster aufgemacht werden.
+   ============================================================ */
+/* Feste Adresse des Online-Quiz. Aendert sich nie — der QR-Code hier
+   muss also NICHT vor jeder Stunde neu erzeugt werden. Nur der
+   vierstellige Raumcode wechselt, und der steht im Quiz-Fenster. */
+var QUIZURL = "https://rechthak.github.io/quiz/";
+var joinUrl = QUIZURL, qrDrawn = "";
+
+function joinQR(){
+  var cv = $("qrcv"), box = $("qrbox");
+  if(!cv || !box) return;
+  if(!joinUrl || typeof QRious === "undefined"){ box.style.visibility = "hidden"; return; }
+  if(qrDrawn === joinUrl && box.style.visibility === "visible") return;
+  try{
+    new QRious({element:cv, value:joinUrl, size:760, level:"M",
+                background:"#ffffff", foreground:"#121618", padding:0});
+    box.style.visibility = "visible";
+    qrDrawn = joinUrl;
+  }catch(e){ box.style.visibility = "hidden"; }
+}
+function joinShow(txt, live){
+  var a = $("qaddr");
+  if(a) a.textContent = joinUrl ? joinUrl.replace(/^https?:\/\//,"").replace(/\/$/,"") : "—";
+  var s = $("qstat"), t = $("qstatt");
+  if(t) t.textContent = txt;
+  if(s) s.classList.toggle("live", !!live);
+}
+function joinPoll(){
+  joinQR();
+  joinShow("Code steht im Quiz-Fenster", false);
+}
+
+/* ============================================================
+   KREUZWORTRAETSEL
+   Wortliste und Algorithmus sind identisch mit 3-Ausdrucken.html.
+   Der Aufbau ist deterministisch — gleiche Liste, gleiches Gitter,
+   gleiche Nummern. Die Loesungsfolie passt dadurch exakt auf das
+   ausgeteilte Blatt. Wer Woerter aendert, muss es in BEIDEN Dateien tun.
+   ============================================================ */
+var XWORDS = [
+  {w:"NATIONALRAT"}, {w:"ABGEORDNETE"}, {w:"MISSTRAUEN"}, {w:"KOALITION"},
+  {w:"AUSSCHUSS"},   {w:"BUNDESRAT"},   {w:"MEHRHEIT"},   {w:"PLENUM"},
+  {w:"GESETZ"},      {w:"MANDAT"},      {w:"KLUB"},       {w:"WIEN"}
+];
+function xwBuild(list){
+  var G = {}, placed = [], unplaced = [];
+  function get(r,c){ return G[r+","+c]; }
+  function set(r,c,ch){ G[r+","+c] = ch; }
+  function score(w,r,c,dir){
+    var dr = dir==="d"?1:0, dc = dir==="a"?1:0, cross = 0;
+    if(get(r-dr, c-dc)) return -1;
+    if(get(r+dr*w.length, c+dc*w.length)) return -1;
+    for(var i=0;i<w.length;i++){
+      var rr = r+dr*i, cc = c+dc*i, cur = get(rr,cc);
+      if(cur){
+        if(cur !== w.charAt(i)) return -1;
+        cross++;
+      }else if(dir==="a"){
+        if(get(rr-1,cc) || get(rr+1,cc)) return -1;
+      }else{
+        if(get(rr,cc-1) || get(rr,cc+1)) return -1;
+      }
+    }
+    return cross;
+  }
+  function put(item,r,c,dir){
+    var dr = dir==="d"?1:0, dc = dir==="a"?1:0;
+    for(var i=0;i<item.w.length;i++) set(r+dr*i, c+dc*i, item.w.charAt(i));
+    placed.push({w:item.w, r:r, col:c, dir:dir});
+  }
+  put(list[0], 0, 0, "a");
+  for(var n=1;n<list.length;n++){
+    var w = list[n].w, best = null;
+    for(var p=0;p<placed.length;p++){
+      var pw = placed[p];
+      for(var i=0;i<pw.w.length;i++){
+        for(var j=0;j<w.length;j++){
+          if(pw.w.charAt(i) !== w.charAt(j)) continue;
+          var dir = pw.dir==="a" ? "d" : "a", r, c;
+          if(dir==="d"){ r = pw.r - j; c = pw.col + i; }
+          else { r = pw.r + i; c = pw.col - j; }
+          var s = score(w, r, c, dir);
+          if(s < 1) continue;
+          var v = s*1000 - (Math.abs(r)*3 + Math.abs(c));
+          if(!best || v > best.v) best = {r:r, c:c, dir:dir, v:v};
+        }
+      }
+    }
+    if(best) put(list[n], best.r, best.c, best.dir);
+    else unplaced.push(list[n]);
+  }
+  return {G:G, placed:placed, unplaced:unplaced};
+}
+var XW = (function(){
+  var res = xwBuild(XWORDS), rs = [], cs = [];
+  Object.keys(res.G).forEach(function(k){ var p = k.split(","); rs.push(+p[0]); cs.push(+p[1]); });
+  var minR = Math.min.apply(null, rs), maxR = Math.max.apply(null, rs);
+  var minC = Math.min.apply(null, cs), maxC = Math.max.apply(null, cs);
+  var rows = maxR-minR+1, cols = maxC-minC+1;
+  res.placed.forEach(function(p){ p.r -= minR; p.col -= minC; });
+  var grid = {};
+  Object.keys(res.G).forEach(function(k){
+    var p = k.split(",");
+    grid[(+p[0]-minR)+","+(+p[1]-minC)] = res.G[k];
+  });
+  var starts = {};
+  res.placed.forEach(function(p){ var key = p.r+","+p.col; (starts[key] = starts[key] || []).push(p); });
+  var num = 0, numbers = {};
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      if(starts[r+","+c]){
+        num++; numbers[r+","+c] = num;
+        starts[r+","+c].forEach(function(p){ p.n = num; });
+      }
+    }
+  }
+  return {rows:rows, cols:cols, grid:grid, numbers:numbers, placed:res.placed};
+})();
+function xwGrid(){
+  var cs = "min(calc(40vw / "+XW.cols+"), calc(58vh / "+XW.rows+"))";
+  var html = '<div class="xw" style="--cs:'+cs+';grid-template-columns:repeat('+XW.cols+', var(--cs))">';
+  for(var r=0;r<XW.rows;r++){
+    for(var c=0;c<XW.cols;c++){
+      var ch = XW.grid[r+","+c];
+      if(!ch){ html += '<span class="xc"></span>'; continue; }
+      var n = XW.numbers[r+","+c];
+      /* Diagonale Welle: je weiter rechts unten, desto spaeter */
+      html += '<span class="xc on" style="animation-delay:'+((r+c)*0.022+0.25).toFixed(3)+'s">'+
+              (n ? '<span class="xn">'+n+'</span>' : '')+ch+'</span>';
+    }
+  }
+  return html+'</div>';
+}
+function xwList(dir){
+  var items = XW.placed.filter(function(p){ return p.dir===dir; })
+    .sort(function(a,b){ return a.n-b.n; })
+    .map(function(p){ return '<li><b>'+p.n+'</b><span>'+p.w+'</span></li>'; }).join("");
+  return '<div><span class="eyebrow">'+(dir==="a" ? "Waagrecht" : "Senkrecht")+'</span>'+
+         '<ul class="sol">'+items+'</ul></div>';
+}
+
+/* Quiz-Daten nur für die Ersatzfolien 17/18 — müssen zu quiz.html passen */
+var QSECS = 20;
+var QLETTERS = ["A","B","C","D"];
+var QCOLORS = ["#B82740","#1C67A8","#BE8118","#487F36"];
+/* Vier Zeichen aus dem Parlament statt Dreieck/Raute/Kreis/Quadrat.
+   Muessen mit quiz.html uebereinstimmen. */
+var QSHAPENAMES = ["Stimmzettel","Glocke","Paragraf","Wappen"];
+var QSHAPES = {
+  0:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="4" width="22" height="32" rx="2.5" fill="#fff"/>'+
+    '<path d="M13.8 19.8l4.3 4.3 8.1-9.2" stroke="rgba(0,0,0,.52)" stroke-width="3.4" fill="none" '+
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  1:'<svg viewBox="0 0 40 40" aria-hidden="true">'+
+    '<path d="M20 4.5c-1.25 0-2.25.95-2.25 2.1v1.25C13.1 9.05 9.8 13.3 9.8 18.4V26l-2.7 3.5c-.5.7 0 1.6.85 1.6h24.1c.85 0 1.35-.9.85-1.6L30.2 26v-7.6c0-5.1-3.3-9.35-7.95-10.55V6.6c0-1.15-1-2.1-2.25-2.1z" fill="#fff"/>'+
+    '<path d="M16.4 33.3a3.6 3.6 0 007.2 0z" fill="rgba(0,0,0,.52)"/></svg>',
+  2:'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15.5" fill="#fff"/>'+
+    '<text x="20" y="29" text-anchor="middle" font-family="Georgia,serif" font-size="25" '+
+    'font-weight="700" fill="rgba(0,0,0,.55)">&#167;</text></svg>',
+  3:'<svg viewBox="0 0 40 40" aria-hidden="true">'+
+    '<path d="M8 5.5h24v16.8c0 7.2-5.5 11.4-12 13.2-6.5-1.8-12-6-12-13.2z" fill="#fff"/>'+
+    '<rect x="10.6" y="10.4" width="18.8" height="5" fill="rgba(0,0,0,.52)"/>'+
+    '<rect x="10.6" y="20.4" width="18.8" height="5" fill="rgba(0,0,0,.52)"/></svg>'
+};
+var QUIZ = [
+  {q:"Wie viele Abgeordnete sitzen im Nationalrat?",
+   a:["165","183","200","150"], r:1,
+   e:"183 — seit 1971 unverändert. Ein Sitz steht für rund 35.000 Wahlberechtigte."},
+  {q:"Ab welchem Alter darfst du den Nationalrat wählen?",
+   a:["14","16","18","21"], r:1,
+   e:"Seit 2007 ab 16. Österreich war das erste EU-Land mit Wahlrecht ab 16 auf Bundesebene."},
+  {q:"Wie oft wird der Nationalrat regulär gewählt?",
+   a:["alle 4 Jahre","alle 5 Jahre","alle 6 Jahre","alle 7 Jahre"], r:1,
+   e:"Alle 5 Jahre — 2008 von vier auf fünf verlängert. Vorzeitige Neuwahlen sind möglich."},
+  {q:"Wer kontrolliert wen?",
+   a:["Die Regierung kontrolliert den Nationalrat","Der Nationalrat kontrolliert die Regierung",
+      "Der Bundespräsident kontrolliert beide","Niemand kontrolliert jemanden"], r:1,
+   e:"Der Nationalrat kontrolliert die Regierung — mit Anfragen, Untersuchungsausschüssen und dem Misstrauensvotum."},
+  {q:"Wer beurkundet ein beschlossenes Gesetz ganz am Schluss?",
+   a:["Der Bundeskanzler","Die Nationalratspräsidentin","Der Bundespräsident","Der Verfassungsgerichtshof"], r:2,
+   e:"Der Bundespräsident beurkundet, der Kanzler zeichnet gegen — dann kommt die Kundmachung im Bundesgesetzblatt."},
+  {q:"Wie viele Abgeordnete braucht ein eigener Gesetzesantrag mindestens?",
+   a:["1","5","20","92"], r:1,
+   e:"Fünf Abgeordnete genügen für einen Initiativantrag. Man muss also nicht in der Regierung sein."}
+];
+
+/* ================================================= Halbkreis (183 Sitze) */
+function seatLayout(){
+  var rows = [118,150,182,214,246,278], w = 0, i;
+  for(i=0;i<rows.length;i++) w += rows[i];
+  var counts = [], total = 0;
+  for(i=0;i<rows.length;i++){ var c = Math.round(183*rows[i]/w); counts.push(c); total += c; }
+  var k = 0;
+  while(total !== 183){ if(total < 183){ counts[rows.length-1-(k%rows.length)]++; total++; } else { counts[k%rows.length]--; total--; } k++; }
+  var seats = [];
+  for(i=0;i<rows.length;i++){
+    var n = counts[i], r = rows[i];
+    for(var j=0;j<n;j++){
+      var t = n===1 ? .5 : j/(n-1);
+      var ang = Math.PI - t*Math.PI;
+      seats.push({x:330+Math.cos(ang)*r, y:320-Math.sin(ang)*r, a:ang, r:r});
+    }
+  }
+  seats.sort(function(a,b){ return b.a - a.a; });
+  var idx = 0;
+  PARTIES.forEach(function(p){ for(var q=0;q<p.s;q++){ seats[idx].p = p; idx++; } });
+  return seats;
+}
+var SEATS = seatLayout();
+
+function hemiSVG(opts){
+  opts = opts || {};
+  var body = "";
+  SEATS.forEach(function(s, i){
+    var fill = opts.mono ? (opts.monoColor||"#121618") : s.p.c;
+    /* Die Verzoegerung haengt am Kreis selbst — dadurch setzen sich die
+       Sitze von der Mitte nach aussen, statt alle gleichzeitig zu erscheinen. */
+    var delay = (i * 0.0022).toFixed(4);
+    body += '<circle cx="'+s.x.toFixed(1)+'" cy="'+s.y.toFixed(1)+'" r="'+(opts.r||8.6)+
+            '" fill="'+fill+'" data-i="'+i+'" data-p="'+s.p.k+'" opacity="'+(opts.hidden?0:1)+
+            '" style="animation-delay:'+delay+'s"/>';
+  });
+  return '<svg class="hemi" viewBox="0 0 660 352" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Sitzverteilung im Nationalrat: 183 Sitze">'+
+    '<rect x="296" y="322" width="68" height="9" rx="2" fill="#8E7030"/>'+
+    body+'</svg>';
+}
+
+/* ================================================================ SVG-Kunst */
+function artFacade(){
+  var cols = "";
+  for(var i=0;i<10;i++){
+    var x = 118 + i*84;
+    cols += '<rect x="'+x+'" y="238" width="40" height="292" fill="#EDEDE7"/>'+
+            '<rect x="'+x+'" y="238" width="40" height="292" fill="url(#flute)" opacity=".5"/>'+
+            '<rect x="'+(x-7)+'" y="228" width="54" height="12" fill="#F6F6F1"/>'+
+            '<rect x="'+(x-5)+'" y="526" width="50" height="14" fill="#E2E2DA"/>';
+  }
+  return '<svg class="art" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Das Parlamentsgebäude am Wiener Ring">'+
+  '<defs>'+
+    '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#CBD9E0"/><stop offset="55%" stop-color="#E4EAEC"/><stop offset="100%" stop-color="#F4F5F2"/></linearGradient>'+
+    '<linearGradient id="flute" x1="0" y1="0" x2="1" y2="0">'+
+      '<stop offset="0%" stop-color="#D3D3CA"/><stop offset="22%" stop-color="#FFFFFF"/>'+
+      '<stop offset="60%" stop-color="#F4F4EE"/><stop offset="100%" stop-color="#CFCFC6"/></linearGradient>'+
+    '<linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#FFFFFC"/><stop offset="100%" stop-color="#E2E2D9"/></linearGradient>'+
+  '</defs>'+
+  '<rect width="1000" height="600" fill="url(#sky)"/>'+
+  '<circle cx="500" cy="150" r="210" fill="#E8D5A6" opacity=".34"/>'+
+  '<circle cx="500" cy="150" r="120" fill="#F3E3BC" opacity=".4"/>'+
+  '<polygon points="500,52 960,226 40,226" fill="url(#stone)" stroke="#BFC4BD" stroke-width="1.5"/>'+
+  '<polygon points="500,78 906,232 94,232" fill="#E8E8DF" stroke="#CBCFC8"/>'+
+  '<circle cx="500" cy="140" r="20" fill="#CFCFC5"/><rect x="490" y="158" width="20" height="58" rx="8" fill="#CFCFC5"/>'+
+  '<circle cx="418" cy="166" r="14" fill="#D6D6CC"/><rect x="410" y="180" width="16" height="38" rx="7" fill="#D6D6CC"/>'+
+  '<circle cx="582" cy="166" r="14" fill="#D6D6CC"/><rect x="574" y="180" width="16" height="38" rx="7" fill="#D6D6CC"/>'+
+  '<circle cx="336" cy="190" r="11" fill="#DBDBD1"/><rect x="330" y="202" width="13" height="26" rx="6" fill="#DBDBD1"/>'+
+  '<circle cx="664" cy="190" r="11" fill="#DBDBD1"/><rect x="658" y="202" width="13" height="26" rx="6" fill="#DBDBD1"/>'+
+  '<rect x="40" y="220" width="920" height="20" fill="#FBFBF7"/>'+
+  cols+
+  '<rect x="0" y="538" width="1000" height="18" fill="#DEDED5"/>'+
+  '<rect x="0" y="556" width="1000" height="44" fill="#C8CCC5"/>'+
+  '<g transform="translate(500,300)">'+
+    '<ellipse cx="0" cy="238" rx="118" ry="16" fill="#A9AEA8" opacity=".45"/>'+
+    '<rect x="-11" y="118" width="22" height="120" fill="#8C7433"/>'+
+    '<rect x="-46" y="230" width="92" height="12" rx="3" fill="#7E6830"/>'+
+    '<circle cx="0" cy="58" r="26" fill="#B08A3E"/>'+
+    '<path d="M-26 58 q26 -46 52 0 z" fill="#C79B48"/>'+
+    '<rect x="-17" y="82" width="34" height="46" rx="12" fill="#B08A3E"/>'+
+    '<rect x="26" y="-4" width="7" height="136" rx="3" fill="#C79B48"/>'+
+    '<circle cx="29" cy="-14" r="9" fill="#D8B25F"/>'+
+    '<path d="M-30 96 q-22 22 -10 44 q16 10 28 -6 z" fill="#A8813A"/>'+
+  '</g>'+
+  '</svg>';
+}
+
+function artChamber(){
+  var seats = "";
+  SEATS.forEach(function(s){
+    seats += '<circle cx="'+(s.x*1.42).toFixed(1)+'" cy="'+(s.y*1.42+38).toFixed(1)+'" r="10" fill="'+s.p.c+'" opacity=".92"/>';
+  });
+  return '<svg class="art" viewBox="0 0 940 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Blick in den Sitzungssaal des Nationalrats">'+
+  '<defs><radialGradient id="dome" cx="50%" cy="6%" r="84%">'+
+    '<stop offset="0%" stop-color="#FFFFFF"/><stop offset="58%" stop-color="#EDF0F0"/><stop offset="100%" stop-color="#DCE1E0"/></radialGradient>'+
+    '<linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="#EAECE7"/><stop offset="100%" stop-color="#D7DAD3"/></linearGradient></defs>'+
+  '<rect width="940" height="600" fill="url(#dome)"/>'+
+  '<ellipse cx="470" cy="4" rx="310" ry="128" fill="#FFFFFF" opacity=".9"/>'+
+  '<ellipse cx="470" cy="0" rx="196" ry="80" fill="#FBF6E6" opacity=".85"/>'+
+  '<path d="M170 132 H770" stroke="#C6CCCB" stroke-width="2" fill="none"/>'+
+  '<rect y="330" width="940" height="270" fill="url(#floor)"/>'+
+  '<rect x="368" y="352" width="204" height="16" rx="3" fill="#B08A3E"/>'+
+  '<rect x="404" y="312" width="132" height="42" rx="3" fill="#C3C8C4"/>'+
+  '<rect x="438" y="286" width="64" height="28" rx="14" fill="#AEB5B1"/>'+
+  '<g transform="translate(0,-14)">'+seats+'</g>'+
+  '<rect x="0" y="0" width="52" height="600" fill="#A3162B" opacity=".2"/>'+
+  '<rect x="888" y="0" width="52" height="600" fill="#A3162B" opacity=".2"/>'+
+  '</svg>';
+}
+
+function artBallot(){
+  var rows = "";
+  PARTIES.slice().reverse().forEach(function(p, i){
+    var y = 168 + i*76;
+    rows += '<rect x="150" y="'+y+'" width="640" height="62" fill="#FBFBF7" stroke="#D8D8CE"/>'+
+      '<rect x="168" y="'+(y+14)+'" width="34" height="34" fill="none" stroke="#2A3033" stroke-width="2.5"/>'+
+      '<rect x="222" y="'+(y+20)+'" width="14" height="22" rx="2" fill="'+p.c+'"/>'+
+      '<text x="252" y="'+(y+38)+'" font-family="Public Sans, sans-serif" font-size="24" font-weight="600" fill="#1A2023">'+p.n+'</text>';
+  });
+  return '<svg class="art" viewBox="0 0 940 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Ein Stimmzettel für die Nationalratswahl">'+
+  '<defs><linearGradient id="desk" x1="0" y1="0" x2="1" y2="1">'+
+    '<stop offset="0%" stop-color="#E9EBE6"/><stop offset="100%" stop-color="#D2D6CF"/></linearGradient></defs>'+
+  '<rect width="940" height="600" fill="url(#desk)"/>'+
+  '<rect x="122" y="60" width="704" height="520" rx="3" fill="#B6BAB4" opacity=".55"/>'+
+  '<rect x="118" y="56" width="704" height="520" rx="3" fill="#FFFFFB" stroke="#D8DAD3"/>'+
+  '<text x="150" y="106" font-family="Instrument Serif, Georgia, serif" font-size="34" fill="#1A2023">Amtlicher Stimmzettel</text>'+
+  '<text x="150" y="138" font-family="IBM Plex Mono, monospace" font-size="15" letter-spacing="2" fill="#6A7174">NATIONALRATSWAHL</text>'+
+  '<line x1="150" y1="150" x2="790" y2="150" stroke="#D8D8CE" stroke-width="1.5"/>'+
+  rows+
+  '<g transform="translate(185,410) rotate(-7)" stroke="#A3162B" stroke-width="6" stroke-linecap="round">'+
+    '<line x1="-15" y1="-15" x2="15" y2="15"/><line x1="15" y1="-15" x2="-15" y2="15"/></g>'+
+  '<g transform="translate(742,470) rotate(34)">'+
+    '<rect x="-11" y="-190" width="22" height="188" fill="#B08A3E"/>'+
+    '<rect x="-11" y="-190" width="8" height="188" fill="#C79B48"/>'+
+    '<polygon points="-11,-2 11,-2 0,30" fill="#E8DCC0"/><polygon points="-4,18 4,18 0,30" fill="#1A2023"/>'+
+  '</g></svg>';
+}
+
+/* ================================================================ Folien */
+var SL = [];
+function slide(o){ SL.push(o); }
+
+slide({mode:"Kaltstart", spk:"Luis", t:"Cold Open", min:"0:35",
+  html:
+  '<div class="fill" style="flex-direction:column;justify-content:center;gap:clamp(22px,4vh,56px)">'+
+    '<h2 class="big" style="max-width:22ch">Dieses Haus hat in den letzten Monaten über dein Leben entschieden.</h2>'+
+    '<div class="grid3">'+
+      '<div class="panel" data-step="1"><span class="k">Seit 2025/26</span><span class="h">Dein Handy im Unterricht</span><span class="b">Handyverbot bis zur 8. Schulstufe — beschlossen im Nationalrat.</span></div>'+
+      '<div class="panel" data-step="2"><span class="k">Seit du 16 bist</span><span class="h">Deine Stimme</span><span class="b">Wahlrecht ab 16 — beschlossen im Nationalrat.</span></div>'+
+      '<div class="panel" data-step="3"><span class="k">Ab 2027</span><span class="h">Deine Nachrichten</span><span class="b">Überwachung von Messenger-Diensten in schweren Fällen — 2025 beschlossen.</span></div>'+
+    '</div>'+
+  '</div>',
+  steps:3,
+  notes:{
+    say:"Dieses Haus hat in den letzten Monaten über euer Leben entschieden. Drei Beispiele. Euer Handy im Unterricht. Eure Stimme ab 16. Und ab 2027 möglicherweise eure Nachrichten. Drei Entscheidungen, ein Gebäude.",
+    act:["Vor dem ersten Wort: F für Vollbild, C startet die Uhr","Drei Mal Leertaste — pro Beispiel einmal, mit Pause","Nicht erklären, nur behaupten"]
+  }});
+
+slide({mode:"Titel", spk:"Luis", t:"Titel", min:"0:35",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(24px,4vw,70px)">'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:clamp(14px,2.4vh,30px)">'+
+      '<span class="eyebrow">Österreichisches Parlament · Wien</span>'+
+      '<h1 class="display">Der<br>Nationalrat</h1>'+
+      '<hr class="brassrule">'+
+      '<p class="lead">183 Menschen entscheiden, was in Österreich gilt. Die nächsten Minuten entscheidet ihr mit.</p>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">'+
+        '<span class="tag">Luis</span><span class="tag">Tristan</span><span class="tag">Martin</span><span class="tag">Neele</span>'+
+      '</div>'+
+    '</div>'+
+    '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:16px;max-width:min(36%,370px)">'+
+      '<div class="panel accent"><span class="k">Zweimal heute</span>'+
+        '<span class="h">Ihr stimmt selbst ab</span>'+
+        '<span class="b">Einmal als ihr selbst, einmal als Abgeordnete mit Klubzwang.</span></div>'+
+      '<div class="panel"><span class="k">Am Ende</span>'+
+        '<span class="h">Quiz gegen die Klasse</span>'+
+        '<span class="b">Handy bereithalten — ihr braucht es im letzten Drittel.</span></div>'+
+    '</div>'+
+  '</div>',
+  notes:{
+    say:"Das ist unser Thema: der Nationalrat. Und so viel vorweg — das wird kein Vortrag, bei dem ihr nur zuhört. Ihr stimmt heute zweimal wirklich ab, und am Ende gibt es ein Quiz gegen den Rest der Klasse. Also: Handy bereithalten, ihr braucht es gleich.",
+    act:["Handys müssen noch nicht raus — nur bereitliegen","Tempo halten, das ist nur der Titel"]
+  }});
+
+slide({mode:"Reveal", spk:"Luis", t:"183", min:"0:35",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(20px,3vw,50px)">'+
+    '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:12px;max-width:30ch">'+
+      '<span class="num" style="font-size:clamp(110px,17vw,260px);color:var(--red)">183</span>'+
+      '<h3 class="mid">Abgeordnete. Seit 1971 unverändert.</h3>'+
+      '<p class="lead" style="font-size:clamp(18px,1.7vw,28px)">Ein Sitz steht für rund 35.000 Wahlberechtigte. Ihr in diesem Raum wärt zusammen nicht einmal ein einziger Sitz.</p>'+
+    '</div>'+
+    '<div style="flex:1;min-width:0;height:100%" id="hemi1"></div>'+
+  '</div>',
+  onEnter:function(s){
+    var box = $("hemi1"); if(!box) return;
+    box.innerHTML = hemiSVG({mono:true, hidden:true});
+    var cs = box.querySelectorAll("circle");
+    var i = 0;
+    var iv = setInterval(function(){
+      for(var k=0;k<5 && i<cs.length;k++,i++) cs[i].setAttribute("opacity","1");
+      if(i>=cs.length) clearInterval(iv);
+    }, 16);
+    s._iv = iv;
+  },
+  onLeave:function(s){ if(s._iv) clearInterval(s._iv); },
+  notes:{
+    say:"Vorher noch schnell: Wie viele Abgeordnete sitzen da drin? Ruft mir eure Zahlen herein … — Einhundertdreiundachtzig. Seit 1971 unverändert. Ein einziger Sitz steht für ungefähr 35.000 Wahlberechtigte — wir alle in diesem Raum zusammen wären noch nicht einmal ein Sitz.",
+    act:["Die Frage stellen, BEVOR du auf diese Folie schaltest","Zwei, drei Zahlen hereinrufen lassen, dann weiterschalten","Die Sitze füllen sich von selbst — dabei kurz nichts sagen"]
+  }});
+
+slide({mode:"Bild", spk:"Luis → Tristan", t:"Das Hohe Haus", bleed:true, img:"facade", min:"0:15",
+  cap:{h:"Das Hohe Haus", p:"Am Ring in Wien, seit 1883. 2023 nach fünf Jahren Umbau wieder eröffnet."},
+  notes:{
+    say:"Und das ist der Ort. Das Parlament am Wiener Ring. Tristan erklärt euch, was da drinnen passiert.",
+    act:["Nur kurz stehen lassen, nicht vorlesen","Tristan tritt nach vorne"]
+  }});
+
+slide({mode:"Info", spk:"Tristan", t:"Was ist der Nationalrat?", min:"0:40",
+  html:
+  '<div class="fill" style="flex-direction:column;justify-content:center;gap:clamp(20px,3.6vh,46px)">'+
+    '<div><span class="eyebrow">Was der Nationalrat ist — in drei Wörtern</span>'+
+    '<h2 class="big" style="margin-top:10px">Gewählt. Gesetzgebend. Kontrollierend.</h2></div>'+
+    '<div class="grid3">'+
+      '<div class="panel accent" data-step="1"><span class="k">Gewählt</span><span class="h">Ihr bestimmt, wer drinsitzt</span><span class="b">Die einzige Kammer, die direkt vom ganzen Volk gewählt wird.</span></div>'+
+      '<div class="panel accent" data-step="2"><span class="k">Gesetzgebend</span><span class="h">Hier entstehen Gesetze</span><span class="b">Fast jedes Bundesgesetz in Österreich muss durch diesen Saal.</span></div>'+
+      '<div class="panel accent" data-step="3"><span class="k">Kontrollierend</span><span class="h">Die Regierung muss sich erklären</span><span class="b">Der Nationalrat kann die Regierung befragen, prüfen — und stürzen.</span></div>'+
+    '</div>'+
+  '</div>',
+  steps:3,
+  notes:{
+    say:"Wenn ihr euch heute nur drei Wörter merkt, dann diese: gewählt, gesetzgebend, kontrollierend. Gewählt heißt: der Nationalrat ist die einzige Kammer, die direkt von uns allen gewählt wird — der Bundesrat wird von den Landtagen beschickt. Gesetzgebend heißt: praktisch jedes Bundesgesetz muss durch diesen Saal. Und kontrollierend heißt: die Regierung muss sich hier erklären. Der dritte Punkt überrascht die meisten — dazu kommt Martin gleich.",
+    act:["Drei Mal Leertaste, je ein Wort","Beim dritten Wort langsamer werden"]
+  }});
+
+slide({mode:"Reveal", spk:"Tristan", t:"So sitzt der Nationalrat", min:"0:50",
+  html:
+  '<div class="fill" style="flex-direction:column;gap:clamp(10px,2vh,22px)">'+
+    '<div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap">'+
+      '<div><span class="eyebrow">Nationalratswahl · 29. September 2024</span>'+
+      '<h3 class="mid" style="margin-top:6px">Keine Partei hat allein eine Mehrheit.</h3></div>'+
+      '<div style="margin-left:auto;text-align:right">'+
+        '<span class="eyebrow">Mehrheit braucht</span>'+
+        '<div class="num" style="font-size:clamp(40px,5.5vw,84px);color:var(--red)">92</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="flex:1;min-height:0" id="hemi2"></div>'+
+    '<div style="display:flex;gap:clamp(12px,2.4vw,44px);flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px">'+
+      PARTIES.slice().reverse().map(function(p){
+        return '<div style="display:flex;align-items:baseline;gap:10px">'+
+          '<span style="width:13px;height:13px;border-radius:3px;background:'+p.c+';display:block"></span>'+
+          '<b style="font-size:clamp(19px,1.8vw,30px)">'+p.n+'</b>'+
+          '<span class="mono" style="font-size:clamp(19px,1.8vw,30px);font-weight:600;font-variant-numeric:tabular-nums">'+p.s+'</span></div>';
+      }).join("")+
+    '</div>'+
+  '</div>',
+  onEnter:function(){ var b=$("hemi2"); if(b) b.innerHTML = hemiSVG({}); },
+  notes:{
+    say:"Und so sitzen sie da. FPÖ 57, ÖVP 51, SPÖ 41, NEOS 18, Grüne 16 — Ergebnis der Wahl 2024. Und jetzt das Entscheidende: für eine Mehrheit braucht man 92 Sitze. Schaut euch die Zahlen an — keine einzige Partei kommt auch nur in die Nähe. Deshalb regiert in Österreich fast immer eine Koalition: seit März 2025 ÖVP, SPÖ und NEOS gemeinsam.",
+    act:["Mit der Hand auf die 92 zeigen","Kurz fragen: überrascht euch die Reihenfolge?"]
+  }});
+
+slide({mode:"Bild", spk:"Tristan → Martin", t:"Der Sitzungssaal", bleed:true, img:"chamber", min:"0:15",
+  cap:{h:"Der Sitzungssaal", p:"Hier wird debattiert, gestritten und abgestimmt. Öffentlich — jede Sitzung ist live im Netz."},
+  notes:{ say:"Hier passiert es. Martin, übernimm.", act:["Nur Atmosphäre, kein Text","Martin tritt nach vorne"] }});
+
+slide({mode:"Erklärung", spk:"Martin", t:"Der Weg eines Gesetzes", min:"0:55",
+  html:
+  '<div class="fill" style="flex-direction:column;gap:clamp(8px,1.6vh,20px)">'+
+    '<div><span class="eyebrow">Aufgabe 1 von 2 · Gesetze beschließen</span>'+
+    '<h3 class="mid" style="margin-top:6px">So entsteht ein Gesetz — in sechs Schritten.</h3></div>'+
+    '<div class="pipe">'+
+      [["Jemand bringt einen Vorschlag ein","Die Regierung, mindestens fünf Abgeordnete — oder 100.000 Menschen per Volksbegehren."],
+       ["Der Ausschuss berät","Eine kleine Fachrunde geht den Text Zeile für Zeile durch. Hier wird ein Gesetz wirklich verhandelt."],
+       ["Das Plenum debattiert und stimmt ab","Alle 183 im Sitzungssaal. Abgestimmt wird meist durch Aufzeigen."],
+       ["Der Bundesrat schaut drüber","Die Länderkammer kann bremsen — der Nationalrat kann sie in den meisten Fällen überstimmen."],
+       ["Der Bundespräsident beurkundet","Er prüft, ob das Gesetz verfassungsgemäß zustande gekommen ist. Der Kanzler zeichnet gegen."],
+       ["Kundmachung im Bundesgesetzblatt","Erst jetzt gilt es. Für dich, für mich, für alle."]].map(function(s,i){
+        return '<div class="pstep" data-step="'+(i+1)+'"><span class="pn">0'+(i+1)+'</span>'+
+          '<span><span class="pt">'+s[0]+'</span><span class="pd">'+s[1]+'</span></span></div>'; }).join("")+
+    '</div>'+
+  '</div>',
+  steps:6,
+  notes:{
+    say:"Der Nationalrat hat zwei Jobs. Der erste: Gesetze beschließen — und das läuft immer über sechs Stationen. Erstens: jemand bringt etwas ein — die Regierung, fünf Abgeordnete, oder 100.000 Menschen per Volksbegehren. Zweitens: der Ausschuss. Das ist die Station, die alle unterschätzen — dort wird ein Gesetz wirklich verhandelt, nicht im Plenum. Drittens: alle 183 stimmen ab, meist durch Aufzeigen. Viertens: der Bundesrat, die Länderkammer, kann bremsen, aber meist nicht endgültig stoppen. Fünftens: der Bundespräsident beurkundet. Und sechstens: Kundmachung im Bundesgesetzblatt — erst dann gilt es.",
+    act:["Sechs Mal Leertaste, Schritt für Schritt","Bei Schritt 2 kurz stehen bleiben","Ansagen: diese Reihenfolge kommt im Kreuzworträtsel vor"]
+  }});
+
+slide({mode:"Info", spk:"Martin → Neele", t:"Kontrolle der Regierung", min:"0:40",
+  html:
+  '<div class="fill" style="flex-direction:column;justify-content:center;gap:clamp(18px,3.2vh,42px)">'+
+    '<div><span class="eyebrow">Aufgabe 2 von 2 · Die Regierung kontrollieren</span>'+
+    '<h2 class="big" style="margin-top:8px;max-width:20ch">Drei Werkzeuge gegen die Regierung.</h2></div>'+
+    '<div class="grid3">'+
+      '<div class="panel" data-step="1"><span class="k">Werkzeug 01</span><span class="h">Die Anfrage</span><span class="b">Jede Ministerin muss schriftlich antworten. Pro Jahr sind das Tausende Anfragen.</span></div>'+
+      '<div class="panel" data-step="2"><span class="k">Werkzeug 02</span><span class="h">Der Untersuchungs&shy;ausschuss</span><span class="b">Zeugen unter Wahrheitspflicht, Akten auf den Tisch. Eine Minderheit kann ihn erzwingen.</span></div>'+
+      '<div class="panel accent" data-step="3"><span class="k">Werkzeug 03</span><span class="h">Das Misstrauens&shy;votum</span><span class="b">Eine einfache Mehrheit genügt — und die Regierung ist weg. 2019 tatsächlich passiert.</span></div>'+
+    '</div>'+
+  '</div>',
+  steps:3,
+  notes:{
+    say:"Und Job zwei: kontrollieren. Drei Werkzeuge. Die Anfrage: jede Ministerin, jeder Minister muss schriftlich antworten, das sind Tausende pro Jahr. Der Untersuchungsausschuss: Zeugen unter Wahrheitspflicht, Akten auf den Tisch — und wichtig, eine Minderheit kann ihn erzwingen, die Regierung kann ihn also nicht verhindern. Und das schärfste Werkzeug: das Misstrauensvotum. Einfache Mehrheit genügt, dann ist die Regierung weg. Das klingt theoretisch — 2019 ist es tatsächlich passiert. Dieser Saal kann eine Regierung stürzen. — Wie diese 183 überhaupt dort hinkommen, sagt euch Neele.",
+    act:["Drei Mal Leertaste","Beim dritten Punkt Tempo rausnehmen und eine Pause setzen","Übergabe an Neele"]
+  }});
+
+slide({mode:"Info", spk:"Neele", t:"Wahl & Wahlalter", min:"0:45",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(20px,4vw,64px)">'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--ink);padding-top:clamp(14px,2vh,26px)">'+
+      '<span class="eyebrow">Wie oft gewählt wird</span>'+
+      '<span class="num" style="font-size:clamp(80px,13vw,190px)">5</span>'+
+      '<h3 class="mid">Jahre dauert eine Gesetzgebungsperiode.</h3>'+
+      '<p class="lead" style="font-size:clamp(17px,1.5vw,26px)">Bis 2008 waren es vier. Der Nationalrat kann sich auch selbst auflösen — dann wird vorzeitig gewählt. Zuletzt 2024.</p>'+
+    '</div>'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--red);padding-top:clamp(14px,2vh,26px)">'+
+      '<span class="eyebrow">Ab wann du wählen darfst</span>'+
+      '<span class="num" style="font-size:clamp(80px,13vw,190px);color:var(--red)">16</span>'+
+      '<h3 class="mid">Jahre — und ihr dürft wählen.</h3>'+
+      '<p class="lead" style="font-size:clamp(17px,1.5vw,26px)">Seit 2007. Österreich war das erste EU-Land mit Wahlrecht ab 16 auf Bundesebene. Kandidieren dürft ihr ab 18.</p>'+
+    '</div>'+
+  '</div>',
+  notes:{
+    say:"Zwei Zahlen. Fünf: so lange dauert eine Gesetzgebungsperiode, seit 2008 — davor waren es vier Jahre. Der Nationalrat kann sich aber auch selbst auflösen, dann wird vorzeitig gewählt, so wie zuletzt 2024. Und sechzehn: ab da dürft ihr wählen. Seit 2007 — Österreich war das erste Land der EU, das das auf Bundesebene gemacht hat. Das heißt für die meisten hier im Raum: ihr dürft schon. Kandidieren dürftet ihr ab 18.",
+    act:["Hände hoch: wer darf schon wählen?"]
+  }});
+
+/* ---- Block 2: Was der Nationalrat für euch entscheidet ---- */
+slide({mode:"Alltag", spk:"Neele → Luis", t:"Was das mit euch zu tun hat", min:"0:35",
+  html:
+  '<div class="fill" style="flex-direction:column;justify-content:center;gap:clamp(18px,3.2vh,42px)">'+
+    '<div><span class="eyebrow">Das betrifft dich direkt</span>'+
+    '<h2 class="big" style="margin-top:8px">Drei Gesetze aus deinem Alltag.</h2></div>'+
+    '<div class="grid3">'+
+      '<div class="panel" data-step="1"><span class="k">Schule</span><span class="h">Handyverbot bis zur 8. Schulstufe</span><span class="b">Gilt seit dem Schuljahr 2025/26 österreichweit.</span></div>'+
+      '<div class="panel" data-step="2"><span class="k">Privatsphäre</span><span class="h">Messenger-Überwachung</span><span class="b">2025 beschlossen, ab 2027 einsetzbar — nur bei schwerem Verdacht und mit richterlicher Kontrolle.</span></div>'+
+      '<div class="panel accent" data-step="3"><span class="k">Nicht der Bund</span><span class="h">Jugendschutz</span><span class="b">Ausgehzeiten regeln die Bundesländer, nicht der Nationalrat. Deshalb gilt in Wien anderes als in Tirol.</span></div>'+
+    '</div>'+
+  '</div>',
+  steps:3,
+  notes:{
+    say:"Drei Beispiele aus eurem Alltag. Erstens das Handyverbot an Schulen bis zur achten Schulstufe, seit dem Schuljahr 2025/26. Zweitens die Messenger-Überwachung: 2025 beschlossen, ab 2027 einsetzbar, nur bei schwerem Verdacht und mit richterlicher Kontrolle. Und drittens: der Jugendschutz. Ausgehzeiten regelt nicht der Nationalrat, sondern die Bundesländer. Deshalb gilt in Wien etwas anderes als in Tirol. Alles davon könnt ihr auf parlament.gv.at nachlesen. — Soweit die Theorie. Wie sich das anfühlt, zeigt euch Luis.",
+    act:["Drei Mal Leertaste","Bei Punkt 3 betonen: Landessache","Übergabe an Luis, er übernimmt den Laptop"]
+  }});
+
+/* ---- Block 3: Ihr stimmt selbst ab ---- */
+slide({mode:"Abstimmung", spk:"Luis", t:"Live-Abstimmung der Klasse", min:"1:05",
+  html:
+  '<div class="fill" style="flex-direction:column;gap:clamp(14px,2.4vh,30px)">'+
+    '<div><span class="eyebrow">Erste Abstimmung · jede Hand zählt einzeln</span>'+
+    '<h2 class="big" style="margin-top:6px;max-width:24ch">Sollen Öffis für alle unter 20 kostenlos sein?</h2></div>'+
+    '<div class="tally">'+
+      '<div class="tbox" data-key="ja" style="--tc:var(--ok)"><span class="tl">Dafür</span><span class="tv" data-v="ja">0</span></div>'+
+      '<div class="tbox" data-key="enth" style="--tc:var(--ink-3)"><span class="tl">Enthaltung</span><span class="tv" data-v="enth">0</span></div>'+
+      '<div class="tbox" data-key="nein" style="--tc:var(--red)"><span class="tl">Dagegen</span><span class="tv" data-v="nein">0</span></div>'+
+    '</div>'+
+    '<div class="votebar" id="voteBar"><i style="background:var(--ok);width:0"></i><i style="background:var(--ink-3);width:0"></i><i style="background:var(--red);width:0"></i></div>'+
+    '<div style="display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">'+
+      '<span class="eyebrow">Wäre diese Klasse der Nationalrat</span>'+
+      '<span class="mono" id="voteProj" style="font-size:clamp(20px,2.1vw,34px);font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink-3)">—</span>'+
+    '</div>'+
+  '</div>',
+  notes:{
+    say:"Wir stimmen jetzt ab, so wie es der Nationalrat auch macht: durch Aufzeigen. Die Frage: Sollen öffentliche Verkehrsmittel für alle unter 20 kostenlos sein? Wer ist dafür? Hände hoch und oben lassen. — Wer enthält sich? — Wer ist dagegen? — Das ist euer Ergebnis, umgerechnet auf 183 Sitze. So würde der Antrag im echten Plenum ausgehen. — Tristan zeigt euch jetzt, was sich ändert, wenn ihr nicht mehr als Einzelne abstimmt.",
+    act:["Dafür-Hände zählen: auf den grünen Kasten klicken oder J drücken","Enthaltung: mittlerer Kasten oder E · Dagegen: roter Kasten oder X","Verzählt? Rechtsklick auf den Kasten nimmt eine weg, R setzt auf null","Bei 26 Stimmen zählt eine Hand etwa 7 Sitze","Auf die Hochrechnung unten zeigen, Zahl stehen lassen"]
+  }});
+
+slide({mode:"Simulation", spk:"Tristan", t:"Simulation mit Klubzwang", min:"1:20",
+  html:
+  '<div class="fill" style="flex-direction:column;gap:clamp(10px,1.8vh,22px)">'+
+    '<div style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap">'+
+      '<div><span class="eyebrow">Zweite Abstimmung · jetzt mit Klubzwang</span>'+
+      '<h3 class="mid" style="margin-top:6px">Jede Reihe ist ein Klub. Der Klub stimmt geschlossen ab.</h3></div>'+
+      '<div style="margin-left:auto;text-align:right"><span class="eyebrow">Erforderlich</span>'+
+        '<div class="num" style="font-size:clamp(32px,4vw,62px);color:var(--red)">92</div></div>'+
+    '</div>'+
+    '<div class="klubs">'+
+      PARTIES.slice().reverse().map(function(p){
+        return '<div class="klub" data-klub="'+p.k+'" style="border-top:5px solid '+p.c+'">'+
+          '<div class="kh"><span class="kn">'+p.n+'</span><span class="ks">'+p.s+' Sitze</span></div>'+
+          '<div class="kb">'+
+            '<button data-k="ja">Ja</button><button data-k="enth">Enth.</button><button data-k="nein">Nein</button>'+
+          '</div></div>';
+      }).join("")+
+    '</div>'+
+    '<div style="flex:1;min-height:0;display:flex;align-items:center" id="hemi3"></div>'+
+    '<div class="verdict" style="border-top:1px solid var(--line);padding-top:12px">'+
+      '<span class="vn" id="simJa">0</span><span class="vt">Ja</span>'+
+      '<span class="vn" id="simNein" style="color:var(--red)">0</span><span class="vt">Nein</span>'+
+      '<span class="vt" id="simVerdict" style="margin-left:auto;color:var(--ink-3)">Noch nicht abgestimmt</span>'+
+    '</div>'+
+  '</div>',
+  onEnter:function(){ var b=$("hemi3"); if(b){ b.innerHTML = hemiSVG({mono:true, monoColor:"#D2D6D1", r:7.4}); simUpdate(); } },
+  notes:{
+    say:"Dieselbe Frage nochmal, aber jetzt seid ihr Abgeordnete. Jede Reihe ist ein Klub. Reihe eins ist die FPÖ mit 57 Sitzen, Reihe zwei die ÖVP mit 51, Reihe drei die SPÖ mit 41, Reihe vier die NEOS mit 18. Die Grünen mit ihren 16 Sitzen sind wir vier hier vorne. Neu ist die Klubdisziplin: Jede Reihe einigt sich auf eine gemeinsame Position. Zwanzig Sekunden. — Und jetzt sagt mir jede Reihe ihr Ergebnis. Achtet darauf, was sich ändert: Eure Meinung zählt nicht mehr einzeln, sondern nur noch als Teil eines Klubs. Das ist der Alltag von 183 Abgeordneten. — Und damit zum letzten Teil: einem Quiz.",
+    act:["Reihe 1 = FPÖ, Reihe 2 = ÖVP, Reihe 3 = SPÖ, Reihe 4 = NEOS","Die Grünen übernehmt ihr vier selbst","20 Sekunden beraten lassen","Reihe für Reihe abfragen und anklicken","Nachfragen: hat sich das Ergebnis verändert?","Dann weiter zum Quiz"]
+  }});
+
+/* ---- Block 4: Das Live-Quiz ----
+   Diese Folie holt sich Adresse und Teilnehmerzahl direkt vom Quiz-Server
+   auf diesem Laptop. Es muss also nichts extra aufgeschlagen werden, um den
+   QR-Code herzuzeigen. Laeuft der Server nicht, sagt die Folie das freundlich. */
+slide({mode:"Quiz", spk:"Luis", t:"Beitritt zum Live-Quiz", min:"0:50",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(24px,4vw,70px)">'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:clamp(14px,2.4vh,30px);min-width:0">'+
+      '<div><span class="eyebrow">Sechs Fragen · Tempo zählt</span>'+
+      '<h2 class="big" style="margin-top:8px">Kommt ins Hohe Haus.</h2></div>'+
+      '<div><span class="eyebrow">Im Handy-Browser öffnen</span>'+
+        '<div class="qraddr" id="qaddr" style="margin-top:8px">'+
+        QUIZURL.replace(/^https?:\/\//,"").replace(/\/$/,"")+'</div></div>'+
+      '<div><span class="qstat" id="qstat"><i></i><span id="qstatt">Code steht im Quiz-Fenster</span></span></div>'+
+      '<div class="jokrow">'+
+        '<span class="jok g">⭐ Doppelte Punkte <small>1× im Spiel</small></span>'+
+        '<span class="jok">½ 50 : 50 <small>1× im Spiel</small></span>'+
+      '</div>'+
+      '<div class="qtiles" style="max-width:640px">'+
+        [0,1,2,3].map(function(n){
+          return '<div class="qtile" style="--qc:'+QCOLORS[n]+';padding:clamp(14px,1.6vw,26px);'+
+            'justify-content:center"><span class="ql" style="font-size:clamp(24px,2.4vw,40px)">'+
+            QLETTERS[n]+'</span></div>'; }).join("")+
+      '</div>'+
+    '</div>'+
+    '<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:clamp(10px,1.6vh,20px)">'+
+      '<div class="qrbox" id="qrbox" style="visibility:hidden"><canvas id="qrcv"></canvas></div>'+
+      '<span class="eyebrow">Code scannen</span>'+
+    '</div>'+
+  '</div>',
+  onEnter:function(s){
+    joinPoll();
+    /* Die Adresse ist fest — nur falls sie sich einmal ändert, kann man
+       hier draufklicken und eine andere eintippen. */
+    var a = $("qaddr");
+    if(a) a.onclick = function(){
+      var v = prompt("Andere Quiz-Adresse eintippen:", joinUrl);
+      if(v == null) return;
+      v = v.trim();
+      if(!v) return;
+      if(!/^https?:\/\//i.test(v)) v = "https://" + v;
+      if(!/\/$/.test(v)) v += "/";
+      joinUrl = v; qrDrawn = "";
+      joinQR();
+      joinShow("Adresse von Hand gesetzt", false);
+    };
+  },
+  notes:{
+    say:"Zum Schluss ein Quiz: sechs Fragen, Multiple Choice. Scannt den Code hier vorne oder tippt die Adresse ein. Dann Name eingeben, eine Rolle aussuchen und auf „Quiz beitreten“. — Die Frage steht immer hier vorne auf der Leinwand. Auf eurem Handy seht ihr nur vier farbige Felder: A rot, B blau, C gold, D grün. Ihr tippt den Buchstaben, der zur richtigen Antwort gehört. Wer schneller ist, bekommt mehr Punkte, und wer mehrmals hintereinander richtig liegt, bekommt einen Serienbonus. Dazu hat jede und jeder zwei Joker: einmal doppelte Punkte, einmal fallen zwei falsche Antworten weg. Jeder Joker geht nur ein einziges Mal.",
+    act:["Zahl unter der Adresse beobachten — sie zählt live mit","Warten, bis fast alle drin sind","Dann Alt+Tab ins Quiz-Fenster und Quiz starten","Nach dem Parlamentsfoto zurück ins Deck, einmal → zum Kreuzworträtsel"]
+  }});
+
+/* ---- Block 5: Kreuzworträtsel und direkt danach die Auflösung ----
+   Das Gitter wird mit demselben Code und derselben Wortliste gebaut wie in
+   3-Ausdrucken.html. Nummern und Anordnung stimmen deshalb exakt mit dem
+   ausgeteilten Blatt überein. */
+slide({mode:"Challenge", spk:"Neele", t:"Kreuzworträtsel", min:"1:30",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(22px,4vw,64px)">'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:clamp(14px,2.4vh,30px)">'+
+      '<span class="eyebrow">Abschluss-Challenge</span>'+
+      '<h2 class="big">12 Wörter.<br>Alle kamen gerade vor.</h2>'+
+      '<p class="lead">Zu zweit arbeiten ist erlaubt. Die Auflösung kommt gleich danach.</p>'+
+    '</div>'+
+    '<div style="flex:0 0 auto;text-align:center">'+
+      '<div class="clockbig" data-timer data-secs="90">1:30</div>'+
+    '</div>'+
+  '</div>',
+  notes:{
+    say:"Letzte Runde. Dafür braucht ihr kein Handy, sondern einen Stift. Zwölf Wörter, jedes davon kam heute vor. Zu zweit arbeiten ist erlaubt. Ihr habt eineinhalb Minuten — los.",
+    act:["Zettel sind schon verteilt — Taste T startet den Countdown","Bei 20 Sekunden laut ansagen","Bei 0 abbrechen und weiterschalten: die Lösung steht auf der nächsten Folie"]
+  }});
+
+slide({mode:"Auflösung", spk:"Neele", t:"Lösung des Kreuzworträtsels", min:"0:40",
+  html:
+  '<div class="fill" style="align-items:center;gap:clamp(20px,3.4vw,58px)">'+
+    '<div style="flex:1 1 46%;display:flex;flex-direction:column;gap:clamp(10px,1.8vh,22px);min-width:0">'+
+      '<div><span class="eyebrow">Auflösung</span>'+
+      '<h2 class="big" style="margin-top:6px">Alle zwölf Wörter.</h2></div>'+
+      '<div class="sol2">'+ xwList("a") + xwList("d") +'</div>'+
+    '</div>'+
+    '<div style="flex:1 1 50%;display:flex;align-items:center;justify-content:center;min-width:0">'+ xwGrid() +'</div>'+
+  '</div>',
+  notes:{
+    say:"Und hier ist die Auflösung. Links die waagrechten Wörter, rechts die senkrechten — die Nummern sind dieselben wie auf eurem Blatt. Rechts seht ihr das ganze Gitter ausgefüllt. Vergleicht kurz, dann sind wir fertig.",
+    act:["Kurz Zeit zum Vergleichen lassen","Nachfragen, welches Wort am schwersten war"]
+  }});
+
+slide({mode:"Ende", spk:"Alle vier", t:"Danke", min:"0:15",
+  html:
+  '<div class="fill" style="flex-direction:column;justify-content:center;gap:clamp(18px,3vh,40px)">'+
+    '<h1 class="display" style="font-size:clamp(40px,7vw,116px)">183 Sitze.<br>Einer davon<br>entscheidet über dich.</h1>'+
+    '<div style="display:flex;gap:clamp(14px,3vw,50px);flex-wrap:wrap;align-items:flex-end">'+
+      '<div><span class="eyebrow">Danke</span><div style="font-size:clamp(19px,1.9vw,30px);font-weight:600;margin-top:6px">Luis · Tristan · Martin · Neele</div></div>'+
+      '<div style="margin-left:auto"><span class="eyebrow">Quellen</span>'+
+      '<div class="mono" style="font-size:clamp(14px,1.2vw,20px);color:var(--ink-2);margin-top:6px;line-height:1.6">'+
+        'parlament.gv.at · Bundes-Verfassungsgesetz (B-VG)<br>'+
+        'Amtliches Endergebnis der Nationalratswahl 2024 · bmi.gv.at</div></div>'+
+    '</div>'+
+  '</div>',
+  notes:{
+    say:"Eine letzte Sache nehmt ihr mit: geht diese Woche auf parlament.gv.at, filtert die Abgeordneten nach unserem Wahlkreis und findet heraus, wer euch dort vertritt. Die E-Mail-Adressen stehen öffentlich auf der Seite. Und damit sind wir am Anfang angekommen, nur andersherum: 183 Sitze — und einer davon entscheidet über dich. Danke fürs Mitmachen.",
+    act:["Alle vier stellen sich nach vorne","Sieger kurz feiern lassen","Fragen zulassen","Uhr mit C stoppen"]
+  }});
+
+/* ---- Ab hier: Ersatzfolien. Liegen bewusst HINTER der Dankesfolie,
+   damit nach dem Vortrag der Schluss kommt und nicht der Notfallplan.
+   Erreichbar mit der Ende-Taste oder einmal → über die Dankesfolie. ---- */
+
+slide({mode:"Ersatz", spk:"Luis", t:"Ersatz-Quiz ohne WLAN", min:"3:00", quiz:true,
+  html:'<div class="fill" style="flex-direction:column;gap:clamp(10px,1.8vh,22px)" id="quizBox"></div>',
+  onEnter:function(){ quizRender(); },
+  onLeave:function(){ quizStop(); },
+  onNext:function(){ return quizAdvance(1); },
+  onPrev:function(){ return quizAdvance(-1); },
+  notes:{
+    say:"Frage eins. Ich lese sie vor, ihr habt zwanzig Sekunden zum Überlegen. Und los. … Stopp. Die richtige Antwort ist … Wer hatte A? Wer hatte B?",
+    act:["NUR nutzen, wenn das Live-Quiz nicht läuft","Frage und alle vier Antworten vorlesen","Leertaste startet den Countdown","Bei 0 löst das Deck von selbst auf","Danach Hände zählen: wer hatte A, wer B?","Leertaste → nächste Frage"]
+  }});
+
+slide({mode:"Ersatz", spk:"Luis", t:"Ersatz-Podium ohne WLAN", min:"1:10",
+  html:
+  '<div class="fill" style="align-items:stretch;gap:clamp(20px,3vw,50px)">'+
+    '<div style="flex:1.15;display:flex;flex-direction:column;gap:14px;min-width:0">'+
+      '<div><span class="eyebrow">Endstand</span>'+
+      '<h3 class="mid" style="margin-top:6px">Wer hatte die meisten richtig?</h3></div>'+
+      '<div class="podwrap" id="podium"></div>'+
+    '</div>'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0">'+
+      '<span class="eyebrow">Name und Anzahl</span>'+
+      '<div class="rankform">'+
+        '<input type="text" id="rkName" placeholder="Name" autocomplete="off" maxlength="18">'+
+        '<input type="number" id="rkPts" placeholder="Pkt" autocomplete="off">'+
+        '<button id="rkAdd">Hinzufügen</button>'+
+      '</div>'+
+      '<div class="ranklist" id="rankList"></div>'+
+    '</div>'+
+  '</div>',
+  onEnter:function(){ rankRender(); },
+  notes:{
+    say:"Wer hatte alle sechs richtig? … Fünf? … Vier? Sag mir deinen Namen, ich trage ihn ein.",
+    act:["Von oben herunterfragen","Name, Enter, Anzahl, Enter","Drei bis fünf Einträge reichen"]
+  }});
+
+/* ================================================================
+   REIHENFOLGE DES QUIZ-TEILS
+
+   Das Handy-Quiz braucht einen Laptop, der eingehende Verbindungen
+   annimmt. Auf dem Schullaptop ist das per Gruppenrichtlinie gesperrt
+   (Firewall: eingehend blockieren, eigene Ausnahmen nicht erlaubt) -
+   die Handys kommen dort nicht durch, egal was im Code steht.
+
+   Deshalb steht das Klassenquiz OHNE Handys im Hauptablauf, und die
+   Beitrittsfolie liegt hinter der Dankesfolie. Laeuft das Live-Quiz
+   doch einmal auf einem anderen Laptop, springt man mit der Ende-Taste
+   auf die letzte Folie und nutzt sie von dort.
+   ================================================================ */
+var QUIZMODE = "klasse";
+try{ QUIZMODE = localStorage.getItem("hh-quizmode") || "klasse"; }catch(e){}
+
+(function(){
+  function idx(t){ for(var i=0;i<SL.length;i++) if(SL[i].t===t) return i; return -1; }
+  function take(t){ var i=idx(t); return i<0 ? null : SL.splice(i,1)[0]; }
+
+  var join = take("Beitritt zum Live-Quiz");
+  var q1   = take("Ersatz-Quiz ohne WLAN");
+  var q2   = take("Ersatz-Podium ohne WLAN");
+
+  if(q1){
+    q1.mode = "Quiz"; q1.t = "Klassenquiz"; q1.spk = "Alle vier reihum"; q1.min = "3:00";
+    q1.notes = {
+      say:"Zum Schluss ein Quiz. Sechs Fragen, vier Antworten, zwanzig Sekunden pro Frage. "+
+          "Ihr antwortet mit der Hand: A, B, C oder D. Zählt selbst mit, wie viele ihr richtig habt. "+
+          "Wir lesen abwechselnd vor. — Frage eins.",
+      act:["Reihum vorlesen: Luis 1+2, Tristan 3, Martin 4, Neele 5+6",
+           "Frage und alle vier Antworten laut vorlesen","Leertaste startet den Countdown",
+           "Bei 0 löst die Folie von selbst auf","Hände zählen: wer hatte A, wer B, wer C, wer D",
+           "Jede richtige Antwort zählt einen Punkt — die Klasse merkt sich das selbst",
+           "Leertaste → nächste Frage"]
+    };
+  }
+  if(q2){
+    q2.mode = "Auswertung"; q2.t = "Auswertung des Quiz"; q2.spk = "Martin"; q2.min = "1:10";
+    q2.notes = {
+      say:"Und jetzt die Auswertung. Wer hatte alle sechs richtig? … Fünf? … Vier? "+
+          "Sagt mir euren Namen, ich trage ihn ein.",
+      act:["Von oben herunterfragen: sechs, fünf, vier Richtige","Name eintippen, Punkte eintippen, Hinzufügen",
+           "Drei bis fünf Einträge reichen","Die besten drei stehen oben auf dem Podium"]
+    };
+  }
+  var after = idx("Simulation mit Klubzwang");
+
+  if(QUIZMODE === "handy"){
+    /* Handy-Quiz im Hauptablauf, Klassenquiz als Sicherheitsnetz hinter dem Schluss */
+    if(join){
+      join.spk = "Luis";
+      join.notes.act = ["Zahl unter der Adresse beobachten — sie zählt live mit",
+        "Warten, bis fast alle drin sind",
+        "Dann Alt+Tab ins Quiz-Fenster und Quiz starten",
+        "Nach dem Parlamentsfoto zurück ins Deck, einmal → zum Kreuzworträtsel",
+        "Kommt niemand rein: Taste Q schaltet auf das Quiz ohne Handys um"];
+    }
+    if(after >= 0 && join) SL.splice(after + 1, 0, join);
+    if(q1) SL.push(q1);
+    if(q2) SL.push(q2);
+  } else {
+    /* Klassenquiz im Hauptablauf, Handy-Folie hinter dem Schluss */
+    if(join){
+      join.spk = "Luis";
+      join.notes.act = ["Diese Folie kommt nur dran, wenn das Handy-Quiz läuft",
+        "Dafür müssen Laptop und Handys im selben Netz sein — im Schul-WLAN klappt das meist nicht",
+        "Taste Q schaltet das Handy-Quiz in den Hauptablauf",
+        "Mit der Ende-Taste kommt man hierher"];
+    }
+    if(after >= 0 && q1 && q2) SL.splice(after + 1, 0, q1, q2);
+    if(join) SL.push(join);
+  }
+})();
+
+/* Taste Q schaltet zwischen den beiden Quiz-Varianten um und merkt sich die Wahl.
+   Nach dem Umschalten laedt die Folie neu und springt direkt zum Quiz. */
+function quizModeToggle(){
+  QUIZMODE = (QUIZMODE === "handy") ? "klasse" : "handy";
+  try{
+    localStorage.setItem("hh-quizmode", QUIZMODE);
+    sessionStorage.setItem("hh-jump", "quiz");
+  }catch(e){}
+  location.reload();
+}
+
+/* ================================================================ Aufbau */
+var stage = $("stage");
+SL.forEach(function(s, i){
+  var d = el("section", "slide"+(s.bleed?" bleed":""));
+  d.id = "sl"+i;
+  if(s.img){
+    var art = s.img==="facade" ? artFacade() : s.img==="chamber" ? artChamber() : artBallot();
+    d.innerHTML = '<div class="imgslide" data-img="'+s.img+'">'+art+
+      '<div class="imgscrim"></div>'+
+      '<div class="imgcap"><h2>'+s.cap.h+'</h2><p>'+s.cap.p+'</p></div></div>';
+  } else {
+    d.innerHTML = s.html;
+  }
+  /* Klein rechts unten: wer gerade spricht. Hilft der Klasse und uns vieren. */
+  if(s.spk){
+    var sp = el("div", "spk");
+    sp.textContent = s.spk;
+    d.appendChild(sp);
+  }
+  stage.appendChild(d);
+});
+
+/* ================================================================ Navigation */
+var cur = 0, step = 0;
+
+function applySteps(){
+  var s = SL[cur], d = $("sl"+cur);
+  if(!s.steps) return;
+  var items = d.querySelectorAll("[data-step]");
+  Array.prototype.forEach.call(items, function(it){
+    var n = parseInt(it.getAttribute("data-step"),10);
+    it.classList.toggle("lit", n<=step);
+    if(!it.classList.contains("pstep")) it.style.opacity = n<=step ? "1" : "0";
+    it.style.transition = "opacity .4s ease";
+  });
+}
+
+/* Grosse Zahlen zaehlen beim Folienwechsel hoch statt einfach dazustehen. */
+function countUp(root){
+  Array.prototype.forEach.call(root.querySelectorAll(".num"), function(e){
+    var stored = e.getAttribute("data-n");
+    var target = parseInt(stored !== null ? stored : String(e.textContent).replace(/[^0-9]/g,""), 10);
+    if(isNaN(target) || target <= 0) return;
+    e.setAttribute("data-n", target);
+    var dur = 950, t0 = null;
+    e.textContent = "0";
+    function frame(now){
+      if(t0 === null) t0 = now;
+      var p = Math.min(1, (now - t0) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      e.textContent = Math.round(target * eased);
+      if(p < 1) requestAnimationFrame(frame);
+    }
+    setTimeout(function(){ requestAnimationFrame(frame); }, 260);
+  });
+}
+
+function render(){
+  SL.forEach(function(s,i){ $("sl"+i).classList.toggle("on", i===cur); });
+  var s = SL[cur];
+  $("prog").style.width = ((cur+1)/SL.length*100)+"%";
+  step = 0; applySteps();
+  mountTimers(); restoreImages(); renderNotes();
+  countUp($("sl"+cur));
+  if(s.onEnter) s.onEnter(s);
+}
+
+function leave(){ var s = SL[cur]; if(s.onLeave) s.onLeave(s); stopAllTimers(); }
+
+function next(){
+  var s = SL[cur];
+  if(s.onNext && s.onNext() === true) return;
+  if(s.steps && step < s.steps){ step++; applySteps(); return; }
+  if(cur < SL.length-1){ leave(); cur++; render(); }
+}
+function prev(){
+  var s = SL[cur];
+  if(s.onPrev && s.onPrev() === true) return;
+  if(s.steps && step > 0){ step--; applySteps(); return; }
+  if(cur > 0){ leave(); cur--; step = 0; render(); if(SL[cur].steps){ step = SL[cur].steps; applySteps(); } }
+}
+
+/* ================================================================ Notizen */
+function renderNotes(){
+  var s = SL[cur];
+  var n = s.notes || {say:"", act:[]};
+  $("notes-body").innerHTML =
+    '<h4>Folie '+(cur+1)+' von '+SL.length+' · '+s.t+'</h4>'+
+    '<p style="font-size:12.5px;color:#7F878A;margin-bottom:14px">'+s.spk+' · '+s.mode+(s.min?' · ca. '+s.min:'')+'</p>'+
+    '<div class="say">'+(n.say||"")+'</div>'+
+    (n.act && n.act.length ? '<p style="margin-top:16px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7F878A">Was du dabei machst</p>'+
+      n.act.map(function(a){ return '<p class="act">* '+a+'</p>'; }).join("") : "");
+}
+
+/* ================================================================ Timer */
+var timers = [];
+function stopAllTimers(){ timers.forEach(function(t){ clearInterval(t.iv); }); timers = []; }
+function fmt(s){ return Math.floor(s/60)+":"+(s%60<10?"0":"")+(s%60); }
+function mountTimers(){
+  stopAllTimers();
+  var d = $("sl"+cur);
+  Array.prototype.forEach.call(d.querySelectorAll("[data-timer]"), function(node){
+    var secs = parseInt(node.getAttribute("data-secs"),10);
+    var t = {node:node, left:secs, total:secs, iv:null, running:false};
+    node.textContent = fmt(secs);
+    node.onclick = function(){ toggleTimer(t); };
+    node.style.cursor = "pointer";
+    timers.push(t);
+  });
+}
+function toggleTimer(t){
+  if(t.running){
+    clearInterval(t.iv); t.running=false;
+    t.node.classList.remove("run","hot");
+    return;
+  }
+  if(t.left<=0) t.left = t.total;
+  t.running = true;
+  t.node.classList.add("run"); t.node.classList.remove("done");
+  t.iv = setInterval(function(){
+    t.left--; t.node.textContent = fmt(Math.max(0,t.left));
+    /* Die letzten zwanzig Sekunden pulsieren — das sieht man auch von hinten */
+    t.node.classList.toggle("hot", t.left<=20 && t.left>0);
+    if(t.left<=0){
+      clearInterval(t.iv); t.running=false;
+      t.node.textContent="0:00";
+      t.node.classList.remove("hot");
+      t.node.classList.add("done");
+    }
+  }, 1000);
+}
+
+/* Das Ergebnis wird wie ein Stempel gesetzt: erst wenn sich der Text
+   tatsaechlich aendert, springt die Animation an. Sonst zuckt es bei
+   jedem einzelnen Klick. */
+function stampVerdict(node, text, color){
+  if(!node) return;
+  node.classList.add("verdictbadge");
+  if(node.getAttribute("data-last") === text){ return; }
+  node.setAttribute("data-last", text);
+  node.textContent = text;
+  node.style.color = color;
+  node.classList.remove("stamped");
+  void node.offsetWidth;          /* erzwingt den Neustart der Animation */
+  node.classList.add("stamped");
+}
+
+/* ================================================================ Abstimmung */
+var votes = {ja:0, enth:0, nein:0};
+function voteUpdate(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-v]"), function(n){
+    n.textContent = votes[n.getAttribute("data-v")];
+  });
+  var total = votes.ja+votes.enth+votes.nein;
+  var bar = $("voteBar");
+  if(bar){
+    var seg = bar.querySelectorAll("i");
+    if(total===0){ seg[0].style.width="0"; seg[1].style.width="0"; seg[2].style.width="0"; }
+    else{
+      seg[0].style.width = (votes.ja/total*100)+"%";
+      seg[1].style.width = (votes.enth/total*100)+"%";
+      seg[2].style.width = (votes.nein/total*100)+"%";
+    }
+  }
+  var pr = $("voteProj");
+  if(pr){
+    if(total===0){ stampVerdict(pr, "—", "var(--ink-3)"); }
+    else{
+      var mJa = Math.round(votes.ja/total*183), mNein = Math.round(votes.nein/total*183);
+      stampVerdict(pr, mJa+" Ja · "+mNein+" Nein  →  "+(mJa>=92 ? "angenommen" : "abgelehnt"),
+                   mJa>=92 ? "var(--ok)" : "var(--red)");
+    }
+  }
+}
+
+/* ================================================================ Simulation */
+var klubVote = {};
+function simUpdate(){
+  var ja=0, nein=0, enth=0;
+  PARTIES.forEach(function(p){
+    var v = klubVote[p.k];
+    if(v==="ja") ja+=p.s; else if(v==="nein") nein+=p.s; else if(v==="enth") enth+=p.s;
+  });
+  var jn = $("simJa"), nn = $("simNein"), vd = $("simVerdict");
+  if(jn) jn.textContent = ja;
+  if(nn) nn.textContent = nein;
+  if(vd){
+    if(ja+nein+enth===0){ stampVerdict(vd, "Noch nicht abgestimmt", "var(--ink-3)"); }
+    else if(ja>=92){ stampVerdict(vd, "Angenommen — der Antrag ist Gesetz", "var(--ok)"); }
+    else{ stampVerdict(vd, "Abgelehnt — "+(92-ja)+" Stimmen fehlen", "var(--red)"); }
+  }
+  var svg = document.querySelector("#hemi3 svg");
+  if(svg){
+    Array.prototype.forEach.call(svg.querySelectorAll("circle"), function(c){
+      var pk = c.getAttribute("data-p"), v = klubVote[pk];
+      c.setAttribute("fill", v==="ja" ? "#3B7537" : v==="nein" ? "#A3162B" : v==="enth" ? "#6A7174" : "#D2D6D1");
+    });
+  }
+}
+
+/* Klick auf einen Abstimmungskasten zählt eine Stimme dazu,
+   Rechtsklick nimmt eine weg. Tasten J/E/X gehen weiterhin. */
+document.addEventListener("contextmenu", function(ev){
+  var tb = ev.target.closest(".tbox[data-key]");
+  if(!tb) return;
+  ev.preventDefault();
+  var k = tb.getAttribute("data-key");
+  votes[k] = Math.max(0, votes[k]-1); voteUpdate();
+});
+
+document.addEventListener("click", function(ev){
+  var tb = ev.target.closest(".tbox[data-key]");
+  if(tb){ var tk = tb.getAttribute("data-key"); votes[tk]++; voteUpdate(); return; }
+  var kb = ev.target.closest(".klub [data-k]");
+  if(kb){
+    var kl = kb.closest(".klub").getAttribute("data-klub");
+    var val = kb.getAttribute("data-k");
+    klubVote[kl] = klubVote[kl]===val ? null : val;
+    Array.prototype.forEach.call(kb.closest(".kb").querySelectorAll("button"), function(b){
+      b.classList.toggle("on", b.getAttribute("data-k")===klubVote[kl]);
+    });
+    simUpdate(); return;
+  }
+  if(ev.target.id === "rkAdd"){ rankAdd(); return; }
+  var del = ev.target.closest("[data-del]");
+  if(del){ ranks.splice(parseInt(del.getAttribute("data-del"),10), 1); rankRender(); return; }
+  if(ev.target.closest("#help .hc")) return;
+  if(ev.target.id === "help"){ $("help").classList.remove("on"); return; }
+});
+
+/* ================================================================ Ersatz-Quiz */
+var qi = 0, qphase = 0, qleft = QSECS, qiv = null;
+function quizStop(){ if(qiv){ clearInterval(qiv); qiv = null; } }
+
+function quizRender(){
+  var box = $("quizBox"); if(!box) return;
+  var q = QUIZ[qi];
+  var tiles = q.a.map(function(txt, n){
+    return '<div class="qtile'+(n===q.r?" right":"")+'" style="--qc:'+QCOLORS[n]+'">'+
+      '<span class="ql">'+QLETTERS[n]+'</span><span class="qt">'+esc(txt)+'</span></div>';
+  }).join("");
+  box.innerHTML =
+    '<div class="qhead">'+
+      '<div><span class="eyebrow">Frage '+(qi+1)+' von '+QUIZ.length+'</span></div>'+
+      '<span class="qclock'+(qphase===1?" run":"")+'" id="qclock">'+(qphase===2?"0":qleft)+'</span>'+
+    '</div>'+
+    '<div class="qbar"><i id="qbar" style="width:'+(qphase===2?0:(qleft/QSECS)*100)+'%"></i></div>'+
+    '<h2 class="big" style="font-size:clamp(30px,4.6vw,70px);margin-top:4px">'+esc(q.q)+'</h2>'+
+    /* Die Kacheln fuellen den Rest der Folie - das Klassenquiz laeuft ueber
+       den Beamer und muss aus der letzten Reihe lesbar sein. */
+    '<div class="qtiles'+(qphase===2?" revealed":"")+'" style="flex:1;grid-auto-rows:1fr">'+tiles+'</div>'+
+    (qphase===2 ? '<div class="qexpl">'+esc(q.e)+'</div>' : '');
+}
+
+function quizTick(){
+  qleft--;
+  var c = $("qclock"), b = $("qbar");
+  if(c) c.textContent = Math.max(0, qleft);
+  if(b) b.style.width = Math.max(0,(qleft/QSECS)*100)+"%";
+  if(qleft<=0){ quizStop(); qphase = 2; quizRender(); }
+}
+
+function quizAdvance(dir){
+  if(dir > 0){
+    if(qphase === 0){
+      qphase = 1; qleft = QSECS; quizRender();
+      quizStop(); qiv = setInterval(quizTick, 1000);
+      return true;
+    }
+    if(qphase === 1){ quizStop(); qphase = 2; quizRender(); return true; }
+    if(qi < QUIZ.length-1){ qi++; qphase = 0; qleft = QSECS; quizRender(); return true; }
+    return false;
+  }
+  quizStop();
+  if(qphase > 0){ qphase = 0; qleft = QSECS; quizRender(); return true; }
+  if(qi > 0){ qi--; qphase = 0; qleft = QSECS; quizRender(); return true; }
+  return false;
+}
+
+/* ================================================================ Ersatz-Podium */
+/* Konfetti — nur DOM, kein Canvas. Faellt einmal durch und raeumt sich selbst weg. */
+var CONFCOL = ["#A3162B","#C9A24A","#3B7537","#1C67A8","#8E7030","#E0357C"];
+function confetti(n){
+  var box = $("fx"); if(!box) return;
+  for(var i=0;i<(n||70);i++){
+    var d = document.createElement("span");
+    d.className = "conf";
+    d.style.left = (Math.random()*100).toFixed(2)+"vw";
+    d.style.background = CONFCOL[i % CONFCOL.length];
+    d.style.animationDuration = (2.6 + Math.random()*1.8).toFixed(2)+"s";
+    d.style.animationDelay = (Math.random()*0.5).toFixed(2)+"s";
+    d.style.width = (7 + Math.random()*7).toFixed(0)+"px";
+    d.style.height = (11 + Math.random()*10).toFixed(0)+"px";
+    box.appendChild(d);
+    (function(node){ setTimeout(function(){ if(node.parentNode) node.parentNode.removeChild(node); }, 5200); })(d);
+  }
+}
+
+var ranks = [], lastTop = "";
+function rankRender(){
+  var list = $("rankList"), pod = $("podium");
+  if(!list || !pod) return;
+  ranks.sort(function(a,b){ return b.p - a.p; });
+  var top = ranks.slice(0,3);
+  var max = top.length ? top[0].p : 1;
+  var order = [1,0,2];
+  pod.innerHTML = order.map(function(idx){
+    var e = top[idx];
+    var h = e ? Math.max(22, Math.round((e.p/(max||1))*100)) : 16;
+    if(idx===0) h = 100; else if(e) h = Math.max(30, Math.min(84, h));
+    return '<div class="pod p'+(idx+1)+(idx===0&&e?" first":"")+'">'+
+      '<span class="pname">'+(e ? esc(e.n) : "—")+'</span>'+
+      '<span class="pscore">'+(e ? e.p+" Pkt" : "")+'</span>'+
+      '<span class="pblock" style="height:'+(e ? h : 14)+'%"><span class="prank">'+(idx+1)+'</span></span>'+
+    '</div>';
+  }).join("");
+  /* Konfetti, sobald jemand neu an die Spitze kommt */
+  var nowTop = top[0] ? top[0].n + "|" + top[0].p : "";
+  if(nowTop && nowTop !== lastTop) confetti(70);
+  lastTop = nowTop;
+  list.innerHTML = ranks.length
+    ? ranks.map(function(e,i){
+        return '<div class="rr"><span class="rn">'+(i+1)+'.</span>'+
+          '<span>'+esc(e.n)+'</span>'+
+          '<span class="rs">'+e.p+'<button data-del="'+i+'" title="entfernen">✕</button></span></div>';
+      }).join("")
+    : '<p class="lead" style="font-size:clamp(16px,1.35vw,22px)">Noch keine Einträge.</p>';
+}
+function rankAdd(){
+  var n = $("rkName"), p = $("rkPts");
+  if(!n || !p) return;
+  var name = (n.value||"").trim(), pts = parseInt(p.value,10);
+  if(!name || isNaN(pts)) return;
+  ranks.push({n:name.slice(0,18), p:pts});
+  n.value = ""; p.value = ""; n.focus();
+  /* Hinweis: solange der Cursor im Feld steht, blaettern Leertaste und
+     Pfeiltasten nicht. Escape gibt ihn wieder frei. */
+  rankRender();
+}
+
+/* ================================================================ Bilder */
+function localGet(){ try{ return JSON.parse(localStorage.getItem("nr-imgs")||"{}"); }catch(e){ return {}; } }
+function localSet(m){ try{ localStorage.setItem("nr-imgs", JSON.stringify(m)); }catch(e){} }
+
+function restoreImages(){
+  var local = localGet();
+  Array.prototype.forEach.call(document.querySelectorAll("[data-img]"), function(box){
+    var key = box.getAttribute("data-img");
+    var src = local[key];
+    if(src && !box.querySelector("img.photo")) applyPhoto(key, src);
+  });
+}
+function applyPhoto(key, url){
+  Array.prototype.forEach.call(document.querySelectorAll('[data-img="'+key+'"]'), function(box){
+    var old = box.querySelector("img.photo"); if(old) old.remove();
+    var im = el("img","photo"); im.src = url; im.alt = "";
+    box.insertBefore(im, box.querySelector(".imgscrim"));
+    var art = box.querySelector(".art"); if(art) art.style.display = "none";
+  });
+}
+var pendingKey = null;
+function pickImageForCurrentSlide(){
+  var s = SL[cur];
+  if(!s.img) return;
+  pendingKey = s.img;
+  $("filepick").click();
+}
+$("filepick").addEventListener("change", function(){
+  var f = this.files && this.files[0]; if(!f || !pendingKey) return;
+  var key = pendingKey; pendingKey = null;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var im = new Image();
+    im.onload = function(){
+      var max = 2200, sc = Math.min(1, max/Math.max(im.width, im.height));
+      var cv = document.createElement("canvas");
+      cv.width = Math.round(im.width*sc); cv.height = Math.round(im.height*sc);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+      var url = cv.toDataURL("image/jpeg", .82);
+      var m = localGet(); m[key] = url; localSet(m);
+      applyPhoto(key, url);
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+  this.value = "";
+});
+
+/* ================================================================ Vortragsuhr */
+var clockStart = null;
+setInterval(function(){
+  var e = $("n-clock"); if(!e) return;
+  if(!clockStart){ e.textContent = "0:00"; return; }
+  var s = Math.floor((Date.now()-clockStart)/1000);
+  e.textContent = Math.floor(s/60)+":"+(s%60<10?"0":"")+(s%60);
+}, 1000);
+
+/* ================================================================ Tastatur */
+document.addEventListener("keydown", function(e){
+  var tag = (e.target.tagName||"").toLowerCase();
+  var typing = tag==="input" || tag==="textarea";
+  if(typing && e.key!=="Enter" && e.key!=="Escape") return;
+  if(e.key==="Enter" && (e.target.id==="rkName" || e.target.id==="rkPts")){
+    e.preventDefault();
+    if(e.target.id==="rkName"){ $("rkPts").focus(); } else { rankAdd(); }
+    return;
+  }
+  if(typing) return;
+
+  var k = e.key.toLowerCase();
+  switch(e.key){
+    case "ArrowRight": case " ": case "PageDown": e.preventDefault(); next(); return;
+    case "ArrowLeft": case "PageUp": e.preventDefault(); prev(); return;
+    case "Home": leave(); cur=0; render(); return;
+    case "End": leave(); cur=SL.length-1; render(); return;
+    case "Escape":
+      /* Aus dem Eingabefeld heraus: erst den Cursor freigeben, sonst
+         reagieren Leertaste und Pfeiltasten danach nicht mehr. */
+      if(typing && e.target.blur){ e.target.blur(); return; }
+      $("help").classList.remove("on"); $("notes").classList.remove("on"); return;
+    case "?": $("help").classList.toggle("on"); return;
+  }
+  if(k==="q"){ quizModeToggle(); return; }
+  if(k==="n"){ $("notes").classList.toggle("on"); return; }
+  if(k==="t"){ if(timers[0]) toggleTimer(timers[0]); return; }
+  if(k==="c"){ clockStart = clockStart ? null : Date.now(); return; }
+  if(k==="b"){ pickImageForCurrentSlide(); return; }
+  if(k==="h"){ $("help").classList.toggle("on"); return; }
+  if(k==="f"){
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function(){});
+    return;
+  }
+  if(k==="j"){ votes.ja = Math.max(0, votes.ja + (e.shiftKey?-1:1)); voteUpdate(); return; }
+  if(k==="e"){ votes.enth = Math.max(0, votes.enth + (e.shiftKey?-1:1)); voteUpdate(); return; }
+  if(k==="x"){ votes.nein = Math.max(0, votes.nein + (e.shiftKey?-1:1)); voteUpdate(); return; }
+  if(k==="r"){ votes={ja:0,enth:0,nein:0}; voteUpdate(); return; }
+});
+
+/* Nach dem Umschalten mit Q direkt zum Quiz springen statt auf Folie 1 */
+try{
+  if(sessionStorage.getItem("hh-jump") === "quiz"){
+    sessionStorage.removeItem("hh-jump");
+    for(var qj=0; qj<SL.length; qj++){
+      if(SL[qj].mode === "Quiz"){ cur = qj; break; }
+    }
+  }
+}catch(e){}
+
+render();
+})();
+</script>
+
