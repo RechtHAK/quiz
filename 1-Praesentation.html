@@ -242,12 +242,15 @@ p.lead{font-size:clamp(20px,1.85vw,31px);line-height:1.4;color:var(--ink-2);marg
 /* ---------- Lösung des Kreuzworträtsels ---------- */
 .xw{display:grid;gap:2px}
 .xc{width:var(--cs);height:var(--cs);border-radius:2px}
-.xc.on{background:var(--paper);border:1px solid var(--line);position:relative;
+/* Kraeftige schwarze Kaestchen — hellgraue Linien verschwinden auf dem
+   Beamer aus den hinteren Reihen. */
+.xc.on{background:var(--paper);border:max(2px, calc(var(--cs) * .07)) solid var(--ink);
+  position:relative;
   display:flex;align-items:center;justify-content:center;
-  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);
-  font-size:calc(var(--cs) * .6)}
+  font-family:"IBM Plex Mono",monospace;font-weight:700;color:var(--ink);
+  font-size:calc(var(--cs) * .58)}
 .xc .xn{position:absolute;top:0;left:1px;font-size:calc(var(--cs) * .3);
-  color:var(--red);font-weight:600;line-height:1}
+  color:var(--red);font-weight:700;line-height:1}
 /* Buchstaben starten unsichtbar — applySteps blendet sie Wort fuer Wort ein */
 .xc .xl{opacity:0}
 .sol li span[data-step]{opacity:0}
