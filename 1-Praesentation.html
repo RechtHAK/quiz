@@ -407,15 +407,16 @@ p.lead{font-size:clamp(20px,1.85vw,31px);line-height:1.4;color:var(--ink-2);marg
   </dl>
   <h3 style="font-size:26px;margin:30px 0 14px">Quiz und Schluss</h3>
   <dl>
-    <dt>Q</dt><dd><b>Umschalter.</b> Wechselt zwischen Quiz ohne Handys und Handy-Quiz mit QR-Code.
-      Die Wahl bleibt gespeichert, das Deck springt direkt zum Quiz</dd>
-    <dt>Quiz ohne Handys</dt><dd>Frage vorlesen, Leertaste startet den Countdown, bei 0 löst es auf.
-      Danach Auswertung: Namen und Punkte eintippen, die besten drei kommen aufs Podium</dd>
+    <dt>Folie 14</dt><dd><b>Handy-Quiz</b> — QR-Code und Adresse stehen auf der Folie.
+      Funktioniert aus jedem Netz. Den vierstelligen Code vorlesen, dann ins Quiz-Fenster wechseln</dd>
+    <dt>Folie 15/16</dt><dd>Kreuzworträtsel und Lösung. <b>T</b> startet die eineinhalb Minuten</dd>
+    <dt>Folie 17</dt><dd>Danke — das ist das Ende des Vortrags</dd>
+    <dt>Folie 18/19</dt><dd><b>Plan B:</b> Quiz ohne Handys. Frage vorlesen, Leertaste startet den
+      Countdown, bei 0 löst es auf. Danach Namen und Punkte eintippen fürs Podium</dd>
+    <dt>Ende-Taste</dt><dd>Springt zu Folie 18, also zum Plan B. Noch einmal drücken bringt
+      euch dorthin zurück, wo ihr gesprungen seid</dd>
+    <dt>Q</dt><dd>Dreht die Reihenfolge um: Plan B nach vorne, Handy-Quiz nach hinten</dd>
     <dt>Esc</dt><dd>Gibt den Cursor aus dem Eingabefeld frei — danach blättert die Leertaste wieder</dd>
-    <dt>Handy-Quiz</dt><dd>QR-Code und Adresse stehen auf der Folie, die Zahl zählt live mit.
-      Braucht Laptop und Handys im selben Netz — im Schul-WLAN klappt das meist nicht</dd>
-    <dt>Kreuzworträtsel</dt><dd>T startet die eineinhalb Minuten, die Lösung kommt auf der Folie danach</dd>
-    <dt>Ende-Taste</dt><dd>Springt zur jeweils nicht genutzten Quiz-Variante hinter der Dankesfolie</dd>
   </dl>
 </div></div>
 
@@ -1175,17 +1176,28 @@ slide({mode:"Ersatz", spk:"Luis", t:"Ersatz-Podium ohne WLAN", min:"1:10",
    REIHENFOLGE DES QUIZ-TEILS
 
    Das Handy-Quiz braucht einen Laptop, der eingehende Verbindungen
-   annimmt. Auf dem Schullaptop ist das per Gruppenrichtlinie gesperrt
-   (Firewall: eingehend blockieren, eigene Ausnahmen nicht erlaubt) -
-   die Handys kommen dort nicht durch, egal was im Code steht.
+   annimmt. Frueher lief es lokal auf dem Laptop - das ging im Schulnetz
+   nicht. Seit das Quiz unter rechthak.github.io liegt, verbinden sich
+   alle Geraete nach aussen und es klappt aus jedem Netz.
 
-   Deshalb steht das Klassenquiz OHNE Handys im Hauptablauf, und die
-   Beitrittsfolie liegt hinter der Dankesfolie. Laeuft das Live-Quiz
-   doch einmal auf einem anderen Laptop, springt man mit der Ende-Taste
-   auf die letzte Folie und nutzt sie von dort.
+   Deshalb steht das HANDY-QUIZ im Hauptablauf (Folie 14) und das Quiz
+   ohne Handys als Plan B ganz hinten (Folie 18 und 19). Taste Q dreht
+   es um, die Ende-Taste springt direkt zum Plan B.
    ================================================================ */
-var QUIZMODE = "klasse";
-try{ QUIZMODE = localStorage.getItem("hh-quizmode") || "klasse"; }catch(e){}
+/* Standard ist das Handy-Quiz, weil es seit dem Umzug ins Internet aus
+   jedem Netz funktioniert. Das Quiz ohne Handys bleibt als Plan B ganz
+   hinten liegen. Taste Q schaltet um. */
+var QUIZMODE = "handy";
+try{
+  /* Frueher war das Quiz ohne Handys der Standard. Wer damals einmal Q gedrueckt
+     hat, hat "klasse" im Browser gespeichert und wuerde trotz neuer Fassung die
+     alte Reihenfolge sehen. Die Versionsmarke wirft so einen Altwert einmal weg. */
+  if(localStorage.getItem("hh-quizmode-v") !== "2"){
+    localStorage.removeItem("hh-quizmode");
+    localStorage.setItem("hh-quizmode-v", "2");
+  }
+  QUIZMODE = localStorage.getItem("hh-quizmode") || "handy";
+}catch(e){}
 
 (function(){
   function idx(t){ for(var i=0;i<SL.length;i++) if(SL[i].t===t) return i; return -1; }
@@ -1230,19 +1242,20 @@ try{ QUIZMODE = localStorage.getItem("hh-quizmode") || "klasse"; }catch(e){}
         "Kommt niemand rein: Taste Q schaltet auf das Quiz ohne Handys um"];
     }
     if(after >= 0 && join) SL.splice(after + 1, 0, join);
-    if(q1) SL.push(q1);
+    /* res markiert den Anfang des Reserveblocks — die Ende-Taste springt dorthin */
+    if(q1){ q1.res = 1; SL.push(q1); }
     if(q2) SL.push(q2);
   } else {
     /* Klassenquiz im Hauptablauf, Handy-Folie hinter dem Schluss */
     if(join){
       join.spk = "Luis";
-      join.notes.act = ["Diese Folie kommt nur dran, wenn das Handy-Quiz läuft",
-        "Dafür müssen Laptop und Handys im selben Netz sein — im Schul-WLAN klappt das meist nicht",
+      join.notes.act = ["Diese Folie liegt hinten, weil das Quiz ohne Handys vorne läuft",
+        "Das Handy-Quiz läuft über das Internet — das WLAN ist dabei egal",
         "Taste Q schaltet das Handy-Quiz in den Hauptablauf",
         "Mit der Ende-Taste kommt man hierher"];
     }
     if(after >= 0 && q1 && q2) SL.splice(after + 1, 0, q1, q2);
-    if(join) SL.push(join);
+    if(join){ join.res = 1; SL.push(join); }
   }
 })();
 
@@ -1655,6 +1668,9 @@ setInterval(function(){
 }, 1000);
 
 /* ================================================================ Tastatur */
+/* Von wo aus in den Reserveblock gesprungen wurde — damit die Ende-Taste
+   auch wieder zurueck in den normalen Ablauf fuehrt. */
+var resBack = -1;
 document.addEventListener("keydown", function(e){
   var tag = (e.target.tagName||"").toLowerCase();
   var typing = tag==="input" || tag==="textarea";
@@ -1671,7 +1687,17 @@ document.addEventListener("keydown", function(e){
     case "ArrowRight": case " ": case "PageDown": e.preventDefault(); next(); return;
     case "ArrowLeft": case "PageUp": e.preventDefault(); prev(); return;
     case "Home": leave(); cur=0; render(); return;
-    case "End": leave(); cur=SL.length-1; render(); return;
+    case "End":
+      /* Nicht blind auf die letzte Folie, sondern an den Anfang des
+         Reserveblocks — sonst landet man mitten im Plan B. */
+      var rs = -1;
+      for(var ri=0; ri<SL.length; ri++){ if(SL[ri].res){ rs = ri; break; } }
+      if(rs < 0){ leave(); cur = SL.length-1; render(); return; }
+      if(cur >= rs){
+        /* Zweites Mal Ende: zurueck dorthin, wo wir hergekommen sind */
+        leave(); cur = (resBack >= 0 ? resBack : rs-1); resBack = -1; render(); return;
+      }
+      resBack = cur; leave(); cur = rs; render(); return;
     case "Escape":
       /* Aus dem Eingabefeld heraus: erst den Cursor freigeben, sonst
          reagieren Leertaste und Pfeiltasten danach nicht mehr. */
