@@ -270,6 +270,15 @@ input{font-family:inherit}
 .lookbtn{border:1px dashed var(--line);background:transparent;border-radius:99px;padding:9px;
   font-size:13px;font-weight:600;color:var(--ink-3);width:100%}
 .lookbtn:active{background:var(--stone-2)}
+/* Kurze Pause nach sehr schnellem Dauertippen. Absichtlich mild:
+   die Knoepfe werden blass, nicht gesperrt wirkend, und sind nach
+   knapp zwei Sekunden wieder da. */
+.emobar,.shouts,.dancerow{transition:opacity .22s}
+body.cooling .emobar,body.cooling .shouts,body.cooling .dancerow{
+  opacity:.38;pointer-events:none}
+body.cooling .react::after{content:"Kurz durchatmen";display:block;text-align:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);margin-top:2px}
 .flame{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(180deg,#F4D98B,#DDBB63);
   color:#5B4413;border-radius:99px;padding:1px 7px;font-weight:700;font-size:.72em;
   font-family:"IBM Plex Mono",monospace}
@@ -1114,10 +1123,24 @@ function startHost(){
     draw(); paintRail(); applyDance();
   }
 
-  function addEvt(t,e,n,ar,ac){
-    G.ekey++; G.evts.push({k:G.ekey,t:t,e:e,n:n,ar:ar,ac:ac});
+  /* pid = wer es ausgeloest hat. Das eigene Handy hat die Blase schon
+     beim Antippen gezeigt, sonst erschiene sie ein zweites Mal, sobald
+     das Ereignis ueber den Vermittler zurueckkommt. */
+  function addEvt(t,e,n,ar,ac,pid){
+    G.ekey++; G.evts.push({k:G.ekey,t:t,e:e,n:n,ar:ar,ac:ac,pid:pid||""});
     while(G.evts.length>20) G.evts.shift();
     dirty=true;
+  }
+
+  /* Hoechstens 12 Reaktionen in 5 Sekunden pro Person. Das ist bewusst
+     locker: schnelles Antippen bleibt erlaubt, nur Dauerfeuer wird
+     abgeschnitten, damit die Leinwand lesbar bleibt. */
+  var rateLog={};
+  function rateOk(p){
+    var now=Date.now(), a=rateLog[p.id]||(rateLog[p.id]=[]);
+    while(a.length && now-a[0]>5000) a.shift();
+    if(a.length>=12) return false;
+    a.push(now); return true;
   }
 
   function handle(m){
@@ -1167,9 +1190,13 @@ function startHost(){
       dirty=true; lastKey=""; return;
     }
     if(m.t==="emo"||m.t==="shout"||m.t==="dance"){
+      /* Notbremse am Beamer: wer trotz Sperre am Handy weiterfeuert,
+         kommt hier nicht durch. Grosszuegig — normales Mitfeiern merkt
+         davon nichts. */
+      if(!rateOk(p)) return;
       p.em++;
       if(m.t==="dance"){ danceUntil[p.id]={t:Date.now()+4000, d:clamp(parseInt(m.e,10)||0,0,4)}; }
-      addEvt(m.t, String(m.e||"").slice(0,40), p.n, p.ar, p.ac);
+      addEvt(m.t, String(m.e||"").slice(0,40), p.n, p.ar, p.ac, p.id);
       return;
     }
   }
@@ -1328,6 +1355,8 @@ function startHost(){
       seenEvt[r.k]=1;
       if(r.t==="joker"){ jQueue.push(r); runJoker(); return; }
       if(r.t==="dance"){ applyDance(); return; }
+      /* Eigener Ausruf: steht schon seit dem Antippen auf dem Schirm */
+      if(r.pid && r.pid===MYID) return;
       var d=document.createElement("div");
       d.className="fl"+(r.t==="shout"?" pill":"");
       d.style.left=(6+Math.random()*80)+"vw";
@@ -1614,12 +1643,40 @@ function startPlayer(){
     floatLayer.appendChild(d);
     setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },5200);
   }
+  /* Eimer mit sechs Murmeln: jede Reaktion nimmt eine, alle 0,7 s kommt
+     eine zurueck. Sechs schnelle Antipper hintereinander gehen also
+     immer durch, und wer gemuetlich weiterdrueckt merkt nie etwas.
+     Erst wer den Eimer leerfeuert, wartet 1,8 s. */
+  var RC={tok:6, max:6, last:Date.now(), lock:0, timer:null};
+  function coolPaint(on){
+    document.body.classList.toggle("cooling", !!on);
+  }
+  function reactOk(){
+    var now=Date.now();
+    if(now < RC.lock) return false;
+    RC.tok=Math.min(RC.max, RC.tok + (now-RC.last)/700);
+    RC.last=now;
+    if(RC.tok < 1){
+      RC.tok=0; RC.lock=now+1800;
+      coolPaint(true);
+      if(RC.timer) clearTimeout(RC.timer);
+      RC.timer=setTimeout(function(){ RC.tok=3; RC.last=Date.now(); coolPaint(false); },1800);
+      return false;
+    }
+    RC.tok-=1;
+    return true;
+  }
   function wireReact(){
+    /* Nach jedem Neuzeichnen die Sperre wieder sichtbar machen */
+    coolPaint(Date.now() < RC.lock);
     each("[data-emo]",function(b){ b.onclick=function(){
+      if(!reactOk()) return;
       var e=EMOJI[+b.getAttribute("data-emo")]; floatOwn(e,false); send({t:"emo",e:e}); }; });
     each("[data-sh]",function(b){ b.onclick=function(){
+      if(!reactOk()) return;
       var s=SHOUTS[+b.getAttribute("data-sh")]; floatOwn(s,true); send({t:"shout",e:s}); }; });
     each("[data-dn]",function(b){ b.onclick=function(){
+      if(!reactOk()) return;
       var d=+b.getAttribute("data-dn"); danceMe(d); send({t:"dance",e:d}); }; });
     on("edt",function(){ join(true); });
   }

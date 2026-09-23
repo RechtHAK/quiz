@@ -248,6 +248,9 @@ p.lead{font-size:clamp(20px,1.85vw,31px);line-height:1.4;color:var(--ink-2);marg
   font-size:calc(var(--cs) * .6)}
 .xc .xn{position:absolute;top:0;left:1px;font-size:calc(var(--cs) * .3);
   color:var(--red);font-weight:600;line-height:1}
+/* Buchstaben starten unsichtbar — applySteps blendet sie Wort fuer Wort ein */
+.xc .xl{opacity:0}
+.sol li span[data-step]{opacity:0}
 .sol2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,34px)}
 .sol{list-style:none;margin:6px 0 0;padding:0}
 .sol li{display:grid;grid-template-columns:2.2em 1fr;gap:8px;align-items:baseline;
@@ -409,7 +412,9 @@ p.lead{font-size:clamp(20px,1.85vw,31px);line-height:1.4;color:var(--ink-2);marg
   <dl>
     <dt>Folie 14</dt><dd><b>Handy-Quiz</b> — QR-Code und Adresse stehen auf der Folie.
       Funktioniert aus jedem Netz. Den vierstelligen Code vorlesen, dann ins Quiz-Fenster wechseln</dd>
-    <dt>Folie 15/16</dt><dd>Kreuzworträtsel und Lösung. <b>T</b> startet die eineinhalb Minuten</dd>
+    <dt>Folie 15</dt><dd>Kreuzworträtsel. <b>T</b> startet die eineinhalb Minuten</dd>
+    <dt>Folie 16</dt><dd>Lösung. Jede <b>Leertaste</b> deckt ein Wort auf, zwölf Mal —
+      Pfeil zurück nimmt eines wieder weg</dd>
     <dt>Folie 17</dt><dd>Danke — das ist das Ende des Vortrags</dd>
     <dt>Folie 18/19</dt><dd><b>Plan B:</b> Quiz ohne Handys. Frage vorlesen, Leertaste startet den
       Countdown, bei 0 löst es auf. Danach Namen und Punkte eintippen fürs Podium</dd>
@@ -559,7 +564,27 @@ var XW = (function(){
       }
     }
   }
-  return {rows:rows, cols:cols, grid:grid, numbers:numbers, placed:res.placed};
+  /* Aufdeckreihenfolge: erst waagrecht, dann senkrecht, jeweils nach
+     Nummer — also genau so, wie die Liste daneben gelesen wird.
+     Jedes Wort bekommt seinen Schritt, damit die Leertaste eines nach
+     dem anderen sichtbar macht. */
+  var order = res.placed.filter(function(p){ return p.dir==="a"; })
+      .sort(function(a,b){ return a.n-b.n; })
+    .concat(res.placed.filter(function(p){ return p.dir==="d"; })
+      .sort(function(a,b){ return a.n-b.n; }));
+  order.forEach(function(p,i){ p.st = i+1; });
+  /* Kreuzungsbuchstaben gehoeren zwei Woertern. Sie erscheinen beim
+     frueheren der beiden, sonst bliebe eine Luecke stehen. */
+  var cellStep = {};
+  order.forEach(function(p){
+    var dr = p.dir==="d"?1:0, dc = p.dir==="a"?1:0;
+    for(var i=0;i<p.w.length;i++){
+      var k = (p.r+dr*i)+","+(p.col+dc*i);
+      if(cellStep[k] === undefined || p.st < cellStep[k]) cellStep[k] = p.st;
+    }
+  });
+  return {rows:rows, cols:cols, grid:grid, numbers:numbers,
+          placed:res.placed, cellStep:cellStep, count:order.length};
 })();
 function xwGrid(){
   var cs = "min(calc(40vw / "+XW.cols+"), calc(58vh / "+XW.rows+"))";
@@ -569,9 +594,12 @@ function xwGrid(){
       var ch = XW.grid[r+","+c];
       if(!ch){ html += '<span class="xc"></span>'; continue; }
       var n = XW.numbers[r+","+c];
-      /* Diagonale Welle: je weiter rechts unten, desto spaeter */
+      /* Kaestchen und Nummern stehen sofort da — nur die Buchstaben
+         warten auf ihren Schritt. */
+      var st = XW.cellStep[r+","+c] || 1;
       html += '<span class="xc on" style="animation-delay:'+((r+c)*0.022+0.25).toFixed(3)+'s">'+
-              (n ? '<span class="xn">'+n+'</span>' : '')+ch+'</span>';
+              (n ? '<span class="xn">'+n+'</span>' : '')+
+              '<span class="xl" data-step="'+st+'">'+ch+'</span></span>';
     }
   }
   return html+'</div>';
@@ -579,7 +607,9 @@ function xwGrid(){
 function xwList(dir){
   var items = XW.placed.filter(function(p){ return p.dir===dir; })
     .sort(function(a,b){ return a.n-b.n; })
-    .map(function(p){ return '<li><b>'+p.n+'</b><span>'+p.w+'</span></li>'; }).join("");
+    .map(function(p){
+      /* Die Nummer bleibt stehen, nur das Wort kommt auf Tastendruck */
+      return '<li><b>'+p.n+'</b><span data-step="'+p.st+'">'+p.w+'</span></li>'; }).join("");
   return '<div><span class="eyebrow">'+(dir==="a" ? "Waagrecht" : "Senkrecht")+'</span>'+
          '<ul class="sol">'+items+'</ul></div>';
 }
@@ -1101,19 +1131,23 @@ slide({mode:"Challenge", spk:"Neele", t:"Kreuzworträtsel", min:"1:30",
     act:["Zettel sind schon verteilt — Taste T startet den Countdown","Bei 20 Sekunden laut ansagen","Bei 0 abbrechen und weiterschalten: die Lösung steht auf der nächsten Folie"]
   }});
 
-slide({mode:"Auflösung", spk:"Neele", t:"Lösung des Kreuzworträtsels", min:"0:40",
+slide({mode:"Auflösung", spk:"Neele", t:"Lösung des Kreuzworträtsels", min:"1:10",
   html:
   '<div class="fill" style="align-items:center;gap:clamp(20px,3.4vw,58px)">'+
     '<div style="flex:1 1 46%;display:flex;flex-direction:column;gap:clamp(10px,1.8vh,22px);min-width:0">'+
       '<div><span class="eyebrow">Auflösung</span>'+
-      '<h2 class="big" style="margin-top:6px">Alle zwölf Wörter.</h2></div>'+
+      '<h2 class="big" style="margin-top:6px">Wort für Wort.</h2></div>'+
       '<div class="sol2">'+ xwList("a") + xwList("d") +'</div>'+
     '</div>'+
     '<div style="flex:1 1 50%;display:flex;align-items:center;justify-content:center;min-width:0">'+ xwGrid() +'</div>'+
   '</div>',
+  steps: XW.count,
   notes:{
-    say:"Und hier ist die Auflösung. Links die waagrechten Wörter, rechts die senkrechten — die Nummern sind dieselben wie auf eurem Blatt. Rechts seht ihr das ganze Gitter ausgefüllt. Vergleicht kurz, dann sind wir fertig.",
-    act:["Kurz Zeit zum Vergleichen lassen","Nachfragen, welches Wort am schwersten war"]
+    say:"Und jetzt die Auflösung — ein Wort nach dem anderen. Links die waagrechten, dann die senkrechten. Die Nummern sind dieselben wie auf eurem Blatt. Sagt mit, wenn ihr eines schon habt.",
+    act:["Leertaste deckt ein Wort auf — zwölf Mal insgesamt",
+         "Vor jedem Wort kurz in die Klasse fragen: wer hat es?",
+         "Links erscheint das Wort, rechts füllen sich die Kästchen",
+         "Pfeil zurück nimmt ein Wort wieder weg, falls ihr zu schnell wart"]
   }});
 
 slide({mode:"Ende", spk:"Alle vier", t:"Danke", min:"0:15",
