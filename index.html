@@ -262,6 +262,9 @@ input{font-family:inherit}
   padding:11px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1}
 .dc b{font-size:17px;font-weight:400}
 .dc:active{transform:translateY(1px)}
+.lookbtn{border:1px dashed var(--line);background:transparent;border-radius:99px;padding:9px;
+  font-size:13px;font-weight:600;color:var(--ink-3);width:100%}
+.lookbtn:active{background:var(--stone-2)}
 .flame{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(180deg,#F4D98B,#DDBB63);
   color:#5B4413;border-radius:99px;padding:1px 7px;font-weight:700;font-size:.72em;
   font-family:"IBM Plex Mono",monospace}
@@ -1035,7 +1038,7 @@ function landing(){
 /* ================================================================ LEITUNG */
 function startHost(){
   var G={ phase:"lobby", qi:0, endsAt:0, players:{}, order:[], answers:{},
-          evts:[], ekey:0, banned:{}, out:{} };
+          evts:[], ekey:0, banned:{}, out:{}, gone:{} };
   var lastKey="", seenAns={}, lastScores={}, bumped={}, danceUntil={}, topShown=-1;
   var jQueue=[], jBusy=false, dirty=true, mgrOpen=false;
 
@@ -1150,6 +1153,14 @@ function startHost(){
       }
       dirty=true; return;
     }
+    /* Aussehen und Name lassen sich jederzeit ändern */
+    if(m.t==="look"){
+      var nn=String(m.n||"").trim().slice(0,16);
+      if(nn && !G.banned[nn.toLowerCase()]) p.n=nn;
+      p.ar=clamp(parseInt(m.ar,10)||0,0,11);
+      p.ac=String(m.ac||p.ac).replace(/[^0-9,]/g,"").slice(0,24);
+      dirty=true; lastKey=""; return;
+    }
     if(m.t==="emo"||m.t==="shout"||m.t==="dance"){
       p.em++;
       if(m.t==="dance"){ danceUntil[p.id]={t:Date.now()+4000, d:clamp(parseInt(m.e,10)||0,0,4)}; }
@@ -1200,9 +1211,22 @@ function startHost(){
     var p=G.players[id]; if(!p) return;
     if(ban) G.banned[p.n.toLowerCase()]=1;
     G.out[id]= ban ? "ban" : "kick";
+    /* Punktestand aufheben — falls die Person wieder hereingelassen wird */
+    G.gone[id]=p;
     delete G.players[id];
     G.order=G.order.filter(function(x){ return x!==id; });
     toast(ban?"⛔":"✕", p.n+(ban?" gesperrt":" entfernt"));
+    dirty=true; lastKey=""; publish(); draw(true); renderMgr();
+  }
+  function readmit(id){
+    var p=G.gone[id]; if(!p) return;
+    if(G.order.length>=MAXP){ toast("!", "Quiz ist voll"); return; }
+    delete G.banned[p.n.toLowerCase()];
+    delete G.out[id];
+    delete G.gone[id];
+    G.players[id]=p;
+    if(G.order.indexOf(id)<0) G.order.push(id);
+    toast("✔", p.n+" ist wieder dabei");
     dirty=true; lastKey=""; publish(); draw(true); renderMgr();
   }
   function renderMgr(){
@@ -1219,14 +1243,25 @@ function startHost(){
           '<b>'+esc(p.n)+'</b>'+
           '<button class="mini" data-kick="'+p.id+'">Entfernen</button>'+
           '<button class="mini warn" data-ban="'+p.id+'">Sperren</button></div>';
-      }).join("") : '<p class="p">Noch niemand dabei.</p>')+'</div>'+
-      (Object.keys(G.banned).length ? '<p class="p" style="font-size:14px">Gesperrt: '+
-        esc(Object.keys(G.banned).join(", "))+'</p>' : '')+
+      }).join("") : '<p class="p">Noch niemand dabei.</p>')+
+      /* Entfernte Personen lassen sich mit ihren Punkten zurückholen */
+      (Object.keys(G.gone).length ? '<div style="border-top:1px solid var(--line);padding-top:10px">'+
+        '<span class="eyebrow" style="margin-bottom:7px">Entfernt &mdash; wieder zulassen?</span>'+
+        Object.keys(G.gone).map(function(id){
+          var p=G.gone[id];
+          return '<div class="mgrrow" style="margin-top:6px;opacity:.75">'+
+            '<span class="mf">'+figSVG(p.ar,p.ac)+'</span>'+
+            '<b>'+esc(p.n)+'</b>'+
+            '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:13px;color:var(--ink-3)">'+
+              p.s+' Pkt</span>'+
+            '<button class="mini dark" data-back="'+id+'">Wieder zulassen</button></div>';
+        }).join("")+'</div>' : '')+'</div>'+
       '<button class="btn ghost" id="mgrclose">Schließen</button></div>';
     document.body.appendChild(d);
     on("mgrclose",function(){ mgrOpen=false; renderMgr(); });
     each("[data-kick]",function(b){ b.onclick=function(){ kick(b.getAttribute("data-kick"),false); }; });
     each("[data-ban]",function(b){ b.onclick=function(){ kick(b.getAttribute("data-ban"),true); }; });
+    each("[data-back]",function(b){ b.onclick=function(){ readmit(b.getAttribute("data-back")); }; });
     d.onclick=function(ev){ if(ev.target===d){ mgrOpen=false; renderMgr(); } };
   }
 
@@ -1494,8 +1529,12 @@ function funTitles(rs){
 
 function startPlayer(){
   var S=null, lastKey="", myAns={}, tLeft=0, tAt=0, joined=false;
-  var me=null;
+  var me=null, look=null, editing=false;
+  /* Die Anmeldung gilt nur für DIESEN Raum. In einem neuen Raum meldet man
+     sich neu an — das Aussehen von zuletzt ist dabei nur ein Vorschlag. */
   try{ me=JSON.parse(store("hhl-me-"+ROOM)||"null"); }catch(e){}
+  if(me && me.room !== ROOM) me=null;
+  try{ look=JSON.parse(store("hhl-look")||"null"); }catch(e){}
 
   onState=function(s){
     S=s; tLeft=s.left||0; tAt=Date.now();
@@ -1542,6 +1581,7 @@ function startPlayer(){
       /* Haltung 0 ist "Normal" — als Tanzknopf ergibt das keinen Sinn */
       '<div class="dancerow">'+DANCE.slice(1).map(function(d,i){
         return '<button class="dc" data-dn="'+(i+1)+'"><b>'+d[1]+'</b>'+esc(d[0])+'</button>'; }).join("")+'</div>'+
+      '<button class="lookbtn" id="edt">Name und Aussehen ändern</button>'+
       '</div>';
   }
   /* Man sieht seine eigene Reaktion sofort auf dem eigenen Handy —
@@ -1576,6 +1616,7 @@ function startPlayer(){
       var s=SHOUTS[+b.getAttribute("data-sh")]; floatOwn(s,true); send({t:"shout",e:s}); }; });
     each("[data-dn]",function(b){ b.onclick=function(){
       var d=+b.getAttribute("data-dn"); danceMe(d); send({t:"dance",e:d}); }; });
+    on("edt",function(){ join(true); });
   }
 
   function outScreen(why){
@@ -1598,9 +1639,12 @@ function startPlayer(){
       '</div></div>');
   }
 
-  /* ---------- Beitreten ---------- */
-  function join(){
-    var ar=(me&&me.ar)||0, ac=parseAc((me&&me.ac)||"0,0,0,0,0");
+  /* ---------- Beitreten und Aussehen ändern ----------
+     Dieselbe Maske für beides. edit=true heißt: schon drin, nur ändern. */
+  function join(edit){
+    editing = !!edit;
+    var vor = me || look || {};
+    var ar=vor.ar||0, ac=parseAc(vor.ac||"0,0,0,0,0");
     function rowOpts(label, items, slot, render){
       return '<div class="orow"><b>'+label+'</b><div class="opts">'+
         items.map(function(it,i){
@@ -1610,7 +1654,7 @@ function startPlayer(){
     function body(){
       return '<div><span class="eyebrow">Dein Name</span>'+
         '<input class="field" id="nm" placeholder="z. B. Mia" maxlength="16" autocomplete="off" '+
-          'style="margin-top:7px" value="'+esc((me&&me.n)||"")+'"></div>'+
+          'style="margin-top:7px" value="'+esc(vor.n||"")+'"></div>'+
         /* Die Vorschaufiguren zeigen sofort dein gewähltes Aussehen —
            stellst du auf Weiblich, sind alle zwölf Rollen weiblich. */
         '<div><span class="eyebrow">Deine Rolle</span><div class="archs" style="margin-top:8px">'+
@@ -1629,9 +1673,11 @@ function startPlayer(){
       return '<span class="pv">'+figSVG(ar,acStr(ac),"dn"+ac[3])+'</span>'+
         '<span class="pi"><b>'+esc(archName(ar,ac[0]))+'</b><i>'+esc(TYP[ac[0]])+' · '+
         esc(HAIR[ac[1]][0])+' · '+esc(DANCE[ac[3]][0])+'</i></span>'+
-        '<button class="go" id="jo">Beitreten</button>';
+        '<button class="go" id="jo">'+(edit?"Übernehmen":"Beitreten")+'</button>';
     }
-    h('<div class="wrap"><div class="crestbar">'+crestSVG+'<b>Raum '+esc(ROOM)+'</b></div>'+
+    h('<div class="wrap"><div class="crestbar">'+crestSVG+
+      '<b>'+(edit?"Aussehen ändern":"Raum "+esc(ROOM))+'</b>'+
+      (edit?'<button class="mini" id="abort" style="margin-left:auto">Abbrechen</button>':'')+'</div>'+
       '<div style="flex:1;display:flex;flex-direction:column;gap:16px;padding-block:16px" id="jbody">'+
       body()+'</div>'+
       '<div class="pvbar" id="pvb">'+preview()+'</div></div>');
@@ -1648,13 +1694,23 @@ function startPlayer(){
       each("[data-ar]",function(b){
         b.onclick=function(){ ar=+b.getAttribute("data-ar"); repaint(); };
       });
+      on("abort",function(){ editing=false; lastKey=""; draw(); });
       on("jo",function(){
         var n=(byId("nm").value||"").trim().slice(0,16);
         if(!n){ byId("nm").focus(); return; }
-        me={n:n,ar:ar,ac:acStr(ac)};
+        me={n:n, ar:ar, ac:acStr(ac), room:ROOM};
         store("hhl-me-"+ROOM, JSON.stringify(me));
-        send({t:"join", n:n, ar:ar, ac:acStr(ac)});
-        lastKey=""; waitJoin();
+        /* Zuletzt gewähltes Aussehen merken — als Vorschlag im nächsten Raum */
+        store("hhl-look", JSON.stringify({n:n, ar:ar, ac:acStr(ac)}));
+        if(edit){
+          editing=false;
+          send({t:"look", n:n, ar:ar, ac:acStr(ac)});
+          lastKey=""; draw();
+        } else {
+          editing=false;
+          send({t:"join", n:n, ar:ar, ac:acStr(ac)});
+          lastKey=""; waitJoin();
+        }
       });
     }
     wire();
@@ -1676,6 +1732,8 @@ function startPlayer(){
 
   function draw(){
     if(!S) return;
+    /* Solange die Maske offen ist, nichts überschreiben */
+    if(editing) return;
     if(!me){ if(root.querySelector(".archs")) return; return join(); }
     var r=row();
     if(!r){ if(!root.querySelector(".archs")) waitJoin(); return; }
